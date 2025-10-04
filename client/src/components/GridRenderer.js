@@ -32,10 +32,19 @@ export class GridRenderer {
     hiddenInput.setAttribute('autocorrect', 'off');
     hiddenInput.setAttribute('autocapitalize', 'characters');
     hiddenInput.setAttribute('spellcheck', 'false');
-    hiddenInput.style.position = 'absolute';
+    hiddenInput.style.position = 'fixed';
+    hiddenInput.style.top = '0';
+    hiddenInput.style.left = '0';
+    hiddenInput.style.width = '1px';
+    hiddenInput.style.height = '1px';
     hiddenInput.style.opacity = '0';
     hiddenInput.style.pointerEvents = 'none';
-    hiddenInput.style.left = '-9999px';
+    hiddenInput.style.border = 'none';
+    hiddenInput.style.padding = '0';
+    hiddenInput.style.margin = '0';
+    hiddenInput.style.overflow = 'hidden';
+    hiddenInput.style.clip = 'rect(0, 0, 0, 0)';
+    hiddenInput.style.whiteSpace = 'nowrap';
     this.hiddenInput = hiddenInput;
     this.container.appendChild(hiddenInput);
 
