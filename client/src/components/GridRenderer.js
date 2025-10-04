@@ -14,7 +14,7 @@ export class GridRenderer {
     this.currentInput = '';
     this.currentPosition = 0;
     this.activeRow = null;
-    this.onInputChange = () => {}; // Callback for input changes
+    this.onInputChange = () => { }; // Callback for input changes
   }
 
   /**
@@ -23,6 +23,21 @@ export class GridRenderer {
   render() {
     this.container.innerHTML = '';
     this.container.className = 'grid-container';
+
+    // Create hidden input for mobile keyboard
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'text';
+    hiddenInput.className = 'hidden-mobile-input';
+    hiddenInput.setAttribute('autocomplete', 'off');
+    hiddenInput.setAttribute('autocorrect', 'off');
+    hiddenInput.setAttribute('autocapitalize', 'characters');
+    hiddenInput.setAttribute('spellcheck', 'false');
+    hiddenInput.style.position = 'absolute';
+    hiddenInput.style.opacity = '0';
+    hiddenInput.style.pointerEvents = 'none';
+    hiddenInput.style.left = '-9999px';
+    this.hiddenInput = hiddenInput;
+    this.container.appendChild(hiddenInput);
 
     // Create grid element
     const grid = document.createElement('div');
@@ -46,10 +61,32 @@ export class GridRenderer {
     // Store grid reference
     this.grid = grid;
 
-    // Add click handler to focus grid
-    grid.addEventListener('click', () => {
-      console.log('Grid clicked, focusing...');
-      grid.focus();
+    // Add click handler to focus hidden input (for mobile keyboard)
+    grid.addEventListener('click', (e) => {
+      console.log('Grid clicked, focusing hidden input for mobile...');
+      e.preventDefault();
+      this.hiddenInput.focus();
+    });
+
+    // Handle input from hidden field
+    hiddenInput.addEventListener('input', (e) => {
+      const value = e.target.value.toUpperCase();
+      if (value.length > 0) {
+        const lastChar = value[value.length - 1];
+        // Simulate keyboard event
+        this.handleKeyPress({ key: lastChar, preventDefault: () => { } });
+      }
+      // Clear the input to allow continuous typing
+      hiddenInput.value = '';
+    });
+
+    // Handle backspace on hidden input
+    hiddenInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        this.handleKeyPress(e);
+      } else if (e.key === 'Enter') {
+        this.handleKeyPress(e);
+      }
     });
 
     // Add global keyboard listener to capture all keyboard input
@@ -58,11 +95,11 @@ export class GridRenderer {
       this.globalKeyListener = (e) => {
         // Only handle if target is not an input, textarea, or button
         const target = e.target;
-        const isInputElement = target.tagName === 'INPUT' || 
-                               target.tagName === 'TEXTAREA' || 
-                               target.tagName === 'BUTTON' ||
-                               target.isContentEditable;
-        
+        const isInputElement = target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'BUTTON' ||
+          target.isContentEditable;
+
         if (!isInputElement) {
           console.log('Global key pressed:', e.key);
           this.handleKeyPress(e);
@@ -76,7 +113,7 @@ export class GridRenderer {
     }
 
     this.update();
-    
+
     // Focus the grid immediately
     grid.focus();
     console.log('Grid focused, activeRow:', this.activeRow);
@@ -95,7 +132,7 @@ export class GridRenderer {
     cell.dataset.col = col;
     cell.setAttribute('role', 'gridcell');
     cell.setAttribute('aria-label', `Cell row ${row + 1}, column ${col + 1}`);
-    
+
     return cell;
   }
 
@@ -105,7 +142,7 @@ export class GridRenderer {
    */
   handleKeyPress(e) {
     console.log('handleKeyPress called, activeRow:', this.activeRow, 'key:', e.key);
-    
+
     // Ignore if no active row
     if (this.activeRow === null) {
       console.log('No active row, ignoring input');
@@ -140,16 +177,16 @@ export class GridRenderer {
     // Handle letter input (English A-Z or Hebrew א-ת)
     const isEnglish = /^[A-Z]$/i.test(key);
     const isHebrew = key.length === 1 && key >= '\u05D0' && key <= '\u05EA';
-    
+
     if (this.currentPosition < 4 && (isEnglish || isHebrew)) {
       e.preventDefault();
-      
+
       console.log('Letter input detected:', key, 'isEnglish:', isEnglish, 'isHebrew:', isHebrew);
-      
+
       // Validate character for current language
       const feedback = InputValidator.getRealTimeFeedback(key, this.puzzle.language);
       console.log('Validation feedback:', feedback);
-      
+
       // Add the letter (use uppercase for English, keep Hebrew as-is)
       const letterToAdd = isEnglish ? key : key;
       this.currentInput += letterToAdd;
@@ -165,7 +202,7 @@ export class GridRenderer {
    */
   updateActiveRow() {
     console.log('updateActiveRow called - activeRow:', this.activeRow, 'currentInput:', this.currentInput);
-    
+
     if (this.activeRow === null) {
       console.log('activeRow is null, returning');
       return;
@@ -175,9 +212,9 @@ export class GridRenderer {
     for (let col = 0; col < 4; col++) {
       const cellIndex = this.activeRow * 4 + col;
       const cell = this.cells[cellIndex];
-      
+
       console.log(`Updating cell ${cellIndex} (row ${this.activeRow}, col ${col})`);
-      
+
       if (col < this.currentInput.length) {
         cell.textContent = this.currentInput[col];
         cell.className = 'grid-cell active-row';
@@ -222,9 +259,12 @@ export class GridRenderer {
     this.currentInput = '';
     this.currentPosition = 0;
     this.update();
-    
-    // Focus the grid
-    if (this.grid) {
+
+    // Focus the hidden input for mobile keyboard
+    if (this.hiddenInput) {
+      this.hiddenInput.focus();
+      console.log('Hidden input focused for mobile keyboard');
+    } else if (this.grid) {
       this.grid.focus();
       console.log('Grid focused after setting active row');
     }
@@ -242,10 +282,10 @@ export class GridRenderer {
       for (let col = 0; col < 4; col++) {
         const cellIndex = row * 4 + col;
         const cell = this.cells[cellIndex];
-        
+
         // Check if this row is revealed
         const isRevealed = revealedSet.has(row);
-        
+
         if (isRevealed) {
           // Show revealed letter
           const letter = this.puzzle.grid[row][col];
@@ -293,7 +333,7 @@ export class GridRenderer {
       // Apply feedback styling with staggered animation
       setTimeout(() => {
         cell.textContent = letterFeedback.char;
-        
+
         switch (letterFeedback.status) {
           case 'correct':
             cell.className = 'grid-cell correct';
@@ -370,6 +410,10 @@ export class GridRenderer {
     if (this.globalKeyListener) {
       document.removeEventListener('keydown', this.globalKeyListener);
       this.globalKeyListener = null;
+    }
+    if (this.hiddenInput) {
+      this.hiddenInput.remove();
+      this.hiddenInput = null;
     }
   }
 }
