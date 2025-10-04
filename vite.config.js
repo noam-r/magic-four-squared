@@ -38,12 +38,6 @@ export default defineConfig({
     outDir: '../dist',
     emptyOutDir: true,
     copyPublicDir: true,
-    rollupOptions: {
-      input: {
-        main: resolve(process.cwd(), 'client/index.html'),
-        game: resolve(process.cwd(), 'client/game.html'),
-      },
-    },
   },
   server: {
     port: 5173,

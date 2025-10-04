@@ -429,10 +429,19 @@ window.generateShareLink = function () {
     const encoded = PuzzleEncoder.encode(puzzle);
     const stats = PuzzleEncoder.getCompressionStats(puzzle);
 
-    // Generate URL (use current origin or default to localhost)
-    const baseUrl = window.location.origin.includes('editor')
-      ? window.location.origin.replace('/editor', '')
-      : 'http://localhost:5173';
+    // Generate URL (detect GitHub Pages or local)
+    let baseUrl;
+    if (window.location.hostname === 'localhost') {
+      baseUrl = 'http://localhost:5173';
+    } else if (window.location.hostname.includes('github.io')) {
+      // GitHub Pages - go up one level from /editor/
+      const pathParts = window.location.pathname.split('/').filter(p => p);
+      pathParts.pop(); // Remove 'editor'
+      baseUrl = window.location.origin + '/' + pathParts.join('/');
+    } else {
+      // Custom domain or other hosting - go up one level
+      baseUrl = window.location.href.replace(/\/editor\/?.*$/, '');
+    }
     const shareUrl = `${baseUrl}/?p=${encoded}`;
 
     // Show modal with the link

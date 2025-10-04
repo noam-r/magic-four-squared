@@ -3,135 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Magic Four Squared - A word puzzle game combining riddles with magic squares">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
   <title>Magic Four² - Word Puzzle Game</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .container {
-      max-width: 600px;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 40px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    .subtitle {
-      font-size: 1.2em;
-      margin-bottom: 40px;
-      opacity: 0.9;
-    }
-    .buttons {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-    }
-    .btn {
-      padding: 15px 30px;
-      font-size: 1.1em;
-      font-weight: bold;
-      text-decoration: none;
-      border-radius: 10px;
-      transition: all 0.3s ease;
-      display: inline-block;
-      min-width: 150px;
-    }
-    .btn-primary {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-    .btn-primary:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-    .btn-secondary {
-      background: rgba(0, 0, 0, 0.2);
-      color: white;
-      border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-    .btn-secondary:hover {
-      background: rgba(0, 0, 0, 0.3);
-      transform: translateY(-2px);
-    }
-    .features {
-      text-align: left;
-      margin-top: 40px;
-    }
-    .features h3 {
-      margin-bottom: 15px;
-    }
-    .features ul {
-      list-style: none;
-      padding: 0;
-    }
-    .features li {
-      padding: 5px 0;
-      opacity: 0.9;
-    }
-    .features li:before {
-      content: "✨ ";
-      margin-right: 10px;
-    }
-    .footer {
-      margin-top: 40px;
-      opacity: 0.7;
-      font-size: 0.9em;
-    }
-    @media (max-width: 600px) {
-      .buttons {
-        flex-direction: column;
-        align-items: center;
-      }
-      .btn {
-        width: 200px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Pako compression library for URL-encoded puzzles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Magic Four²</h1>
-    <p class="subtitle">A word puzzle game combining riddles with 4x4 magic squares</p>
-    
-    <div class="buttons">
-      <a href="./game.html" class="btn btn-primary">🎮 Play Game</a>
-      <a href="./editor/" class="btn btn-secondary">✏️ Create Puzzle</a>
+  <div id="app">
+    <!-- Header -->
+    <header class="game-header">
+      <h1>Magic Four²</h1>
+      <div id="game-info"></div>
+    </header>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading puzzle...</p>
     </div>
-    
-    <div class="features">
-      <h3>Features</h3>
-      <ul>
-        <li>Solve riddles to reveal magic square words</li>
-        <li>Share puzzles via simple URLs</li>
-        <li>Multi-language support (English, Hebrew)</li>
-        <li>Create custom puzzles with visual editor</li>
-        <li>Works offline, no server needed</li>
-        <li>Mobile-responsive design</li>
-      </ul>
-    </div>
-    
-    <div class="footer">
-      <p>Open source • PolyForm Noncommercial License</p>
-      <p><a href="https://github.com/yourusername/magic-four-squared" style="color: rgba(255,255,255,0.8);">View on GitHub</a></p>
-    </div>
+
+    <!-- Error display -->
+    <div id="error" class="error" style="display: none;"></div>
+
+    <!-- Main game area -->
+    <main class="game-main">
+      <!-- Grid section -->
+      <section id="grid-container" class="section"></section>
+
+      <!-- Check button section -->
+      <section id="check-button-container" class="section"></section>
+
+      <!-- Riddles section -->
+      <section id="riddles-container" class="section"></section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>Solve the riddles to reveal the magic square!</p>
+    </footer>
   </div>
+
+  <script type="module" src="main.js"></script>
 </body>
 </html>
