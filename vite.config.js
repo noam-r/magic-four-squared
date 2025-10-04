@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import { copyFileSync, mkdirSync, readdirSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 // Copy puzzles to client/public/puzzles before starting dev server
 function copyPuzzles() {
@@ -33,10 +33,17 @@ copyPuzzles();
 export default defineConfig({
   root: 'client',
   publicDir: 'public', // Enable public directory
+  base: process.env.GITHUB_PAGES ? '/magic-four-squared/' : '/',
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    copyPublicDir: true
+    copyPublicDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(process.cwd(), 'client/index.html'),
+        game: resolve(process.cwd(), 'client/game.html'),
+      },
+    },
   },
   server: {
     port: 5173,

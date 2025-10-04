@@ -6,9 +6,11 @@
   "scripts": {
     "generate": "node cli/index.js",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build-gh-pages.js",
+    "build:client": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest run tests/unit/GameStateManager.test.js tests/unit/PuzzleSanitizer.test.js tests/e2e/game.test.js",
+    "test:all": "vitest run"
   },
   "keywords": ["puzzle", "game", "riddles", "magic-square", "multilingual"],
   "author": "",
