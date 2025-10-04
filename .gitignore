@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+
+# Generated artifacts
+puzzles/*.json
+!puzzles/.gitkeep
+client/public/puzzles/*.json
+!client/public/puzzles/.gitkeep
+
+# Build output
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+test-cli-output/
+test-puzzles/
+test-cli-wordlist.txt
+*test*.html
+!tests/
+
+# Temporary files
+tmp/
+temp/
+
+.kiro/
+.vscode/

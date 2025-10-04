@@ -1,0 +1,24 @@
+{
+  "name": "magic-four-squared",
+  "version": "1.0.0",
+  "description": "A word puzzle game combining riddles with 4x4 magic squares",
+  "type": "module",
+  "scripts": {
+    "generate": "node cli/index.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "keywords": ["puzzle", "game", "riddles", "magic-square", "multilingual"],
+  "author": "",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "vite": "^5.1.4",
+    "vitest": "^1.3.1"
+  }
+}

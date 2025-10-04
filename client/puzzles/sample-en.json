@@ -1,0 +1,47 @@
+{
+  "puzzleId": "550e8400-e29b-41d4-a716-446655440000",
+  "version": "1.0.0",
+  "language": "en",
+  "direction": "ltr",
+  "grid": [
+    ["A", "B", "L", "E"],
+    ["B", "A", "R", "E"],
+    ["L", "R", "E", "A"],
+    ["E", "E", "A", "R"]
+  ],
+  "words": ["ABLE", "BARE", "LREA", "EEAR"],
+  "riddles": [
+    {
+      "id": 1,
+      "prompt": "Having the power, skill, or means to do something",
+      "answer": "ABLE",
+      "solutionWord": "ABLE",
+      "position": 0
+    },
+    {
+      "id": 2,
+      "prompt": "Without clothing or covering; naked",
+      "answer": "BARE",
+      "solutionWord": "BARE",
+      "position": 1
+    },
+    {
+      "id": 3,
+      "prompt": "A combination of letters forming a word",
+      "answer": "LREA",
+      "solutionWord": "LREA",
+      "position": 2
+    },
+    {
+      "id": 4,
+      "prompt": "The organ of hearing and balance",
+      "answer": "EEAR",
+      "solutionWord": "EEAR",
+      "position": 3
+    }
+  ],
+  "metadata": {
+    "createdAt": "2025-03-10T12:00:00Z",
+    "difficulty": "easy"
+  }
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Magic Four Squared - A word puzzle game combining riddles with magic squares">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
+  <title>Magic Four² - Word Puzzle Game</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Pako compression library for URL-encoded puzzles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="game-header">
+      <h1>Magic Four²</h1>
+      <div id="game-info"></div>
+    </header>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Loading puzzle...</p>
+    </div>
+
+    <!-- Error display -->
+    <div id="error" class="error" style="display: none;"></div>
+
+    <!-- Main game area -->
+    <main class="game-main">
+      <!-- Grid section -->
+      <section id="grid-container" class="section"></section>
+
+      <!-- Check button section -->
+      <section id="check-button-container" class="section"></section>
+
+      <!-- Riddles section -->
+      <section id="riddles-container" class="section"></section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="game-footer">
+      <p>Solve the riddles to reveal the magic square!</p>
+    </footer>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

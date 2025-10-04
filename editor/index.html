@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic Four² - Puzzle Editor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1em;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .grid-input {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      max-width: 300px;
+    }
+
+    .grid-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .grid-cell input {
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-transform: uppercase;
+      border: 2px solid #667eea;
+      border-radius: 4px;
+    }
+
+    .riddle-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .riddle-card h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .preview {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #667eea;
+    }
+
+    .preview h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .preview pre {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .help-text {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: #667eea;
+    }
+
+    .modal-content textarea {
+      width: 100%;
+      min-height: 300px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      margin: 15px 0;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+  </style>
+  <!-- Pako compression library for URL-encoded puzzles -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎮 Magic Four² Puzzle Editor</h1>
+      <p>Create and edit puzzles for the Magic Four Squared game</p>
+    </div>
+
+    <div class="content">
+      <div id="message" class="message"></div>
+
+      <!-- Metadata Section -->
+      <div class="section">
+        <h2>📋 Puzzle Metadata</h2>
+        
+        <div class="form-group">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="he">Hebrew (עברית)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="difficulty">Difficulty</label>
+          <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid Section -->
+      <div class="section">
+        <h2>🔢 Magic Square Grid</h2>
+        <p class="help-text">Enter 4 letters in each cell to form your magic square. Each row and column should form a 4-letter word.</p>
+        
+        <div class="grid-input" id="grid">
+          <!-- Grid cells will be generated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Riddles Section -->
+      <div class="section">
+        <h2>🎯 Riddles</h2>
+        <p class="help-text">Create a riddle for each word in your magic square.</p>
+        
+        <div id="riddles-container">
+          <!-- Riddle cards will be generated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="button-group">
+        <button class="btn-primary" onclick="generatePreview()">👁️ Preview JSON</button>
+        <button class="btn-success" onclick="downloadPuzzle()">💾 Download Puzzle</button>
+        <button class="btn-success" onclick="generateShareLink()">🔗 Generate Share Link</button>
+        <button class="btn-secondary" onclick="pasteJSON()">📋 Paste JSON</button>
+        <button class="btn-secondary" onclick="loadExample()">📝 Load Example</button>
+        <button class="btn-danger" onclick="clearForm()">🗑️ Clear All</button>
+      </div>
+      
+      <!-- Hidden file input -->
+      <input type="file" id="jsonFileInput" accept=".json" style="display: none;" onchange="loadJSONFile(event)">
+
+      <!-- Preview Section -->
+      <div class="section" id="preview-section" style="display: none;">
+        <div class="preview">
+          <h3>JSON Preview</h3>
+          <pre id="json-preview"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paste JSON Modal -->
+  <div id="pasteModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>📋 Paste Puzzle JSON</h3>
+      <p>Paste your puzzle JSON below to load it into the editor:</p>
+      <textarea id="jsonPasteArea" placeholder='Paste your puzzle JSON here...'></textarea>
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closePasteModal()">Cancel</button>
+        <button class="btn-success" onclick="loadPastedJSON()">Import JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Link Modal -->
+  <div id="shareLinkModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>🔗 Shareable Puzzle Link</h3>
+      <p>Your puzzle has been encoded! Share this link with anyone:</p>
+      <div style="margin: 15px 0;">
+        <input type="text" id="shareLinkInput" readonly style="width: 100%; padding: 10px; font-family: monospace; font-size: 0.9em; border: 2px solid #667eea; border-radius: 4px; background: #f5f5f5;">
+      </div>
+      <div style="margin: 15px 0; padding: 10px; background: #f0f0f0; border-radius: 4px; font-size: 0.9em;">
+        <div><strong>📊 Compression Stats:</strong></div>
+        <div id="compressionStats" style="margin-top: 5px;"></div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeShareLinkModal()">Close</button>
+        <button class="btn-success" onclick="copyShareLink()">📋 Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="editor.js"></script>
+</body>
+</html>

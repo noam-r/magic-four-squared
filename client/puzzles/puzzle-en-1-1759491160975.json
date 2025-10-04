@@ -1,0 +1,72 @@
+{
+  "puzzleId": "49d21261-740f-4dc4-8863-4a13c9cd04ef",
+  "version": "1.0.0",
+  "language": "en",
+  "direction": "ltr",
+  "grid": [
+    [
+      "A",
+      "B",
+      "B",
+      "A"
+    ],
+    [
+      "B",
+      "A",
+      "A",
+      "L"
+    ],
+    [
+      "B",
+      "A",
+      "B",
+      "A"
+    ],
+    [
+      "A",
+      "L",
+      "A",
+      "N"
+    ]
+  ],
+  "words": [
+    "ABBA",
+    "BAAL",
+    "BABA",
+    "ALAN"
+  ],
+  "riddles": [
+    {
+      "id": 1,
+      "prompt": "Swedish quartet mirrored in name, they'll have you dancing in a \"Mamma Mia\" game.",
+      "answer": "ABBA",
+      "solutionWord": "ABBA",
+      "position": 0
+    },
+    {
+      "id": 2,
+      "prompt": "Ancient god of storms, in Canaan's realm, his power did prevail. Who am I?",
+      "answer": "BAAL",
+      "solutionWord": "BAAL",
+      "position": 1
+    },
+    {
+      "id": 3,
+      "prompt": "What word for father can also be a traditional Russian bread?",
+      "answer": "BABA",
+      "solutionWord": "BABA",
+      "position": 2
+    },
+    {
+      "id": 4,
+      "prompt": "I'm a man, neither simple nor wild, found in chemistry and Turing compiled. Who am I?",
+      "answer": "ALAN",
+      "solutionWord": "ALAN",
+      "position": 3
+    }
+  ],
+  "metadata": {
+    "createdAt": "2025-10-03T11:32:40.976Z",
+    "difficulty": "medium"
+  }
+}
