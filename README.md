@@ -287,7 +287,7 @@ This project is licensed under the [PolyForm Noncommercial License 1.0.0](LICENS
 
 **TL;DR:** Free for personal, educational, and non-commercial use. Commercial use requires a separate license.
 
-For commercial licensing inquiries, please contact: [your-email@example.com]
+For commercial licensing inquiries, please contact: [kalbigames@pm.me]
 
 ## 🙏 Acknowledgments
 
@@ -297,8 +297,8 @@ For commercial licensing inquiries, please contact: [your-email@example.com]
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/magic-four-squared/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/magic-four-squared/discussions)
+- **Issues:** [GitHub Issues](https://github.com/noam-r/magic-four-squared/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/noam-r/magic-four-squared/discussions)
 
 ## 🗺️ Roadmap
 
