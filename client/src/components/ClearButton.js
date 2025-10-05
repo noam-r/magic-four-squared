@@ -1,6 +1,9 @@
 /**
  * ClearButton - Button to clear all grid input
  */
+
+import { i18n } from '../modules/i18n.js';
+
 export class ClearButton {
   constructor(container, onClear) {
     this.container = container;
@@ -15,10 +18,10 @@ export class ClearButton {
     this.container.innerHTML = '';
     
     this.button = document.createElement('button');
-    this.button.textContent = 'Clear grid';
+    this.button.textContent = i18n.t('clearGrid');
     this.button.className = 'clear-button';
-    this.button.setAttribute('aria-label', 'Clear all letters from grid');
-    this.button.title = 'Clear all letters (Esc)';
+    this.button.setAttribute('aria-label', i18n.t('clearGridAriaLabel'));
+    this.button.title = i18n.t('clearGridTitle');
     
     this.button.addEventListener('click', () => {
       if (this.onClear) {

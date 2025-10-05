@@ -64,7 +64,12 @@ const translations = {
     hintsRemaining: 'Hints ({count})',
     noHintsRemaining: 'No hints left',
     hintModalTitle: 'Hint',
-    hintFor: 'Hint for:'
+    hintFor: 'Hint for:',
+    
+    // Clear Button
+    clearGrid: 'Clear grid',
+    clearGridAriaLabel: 'Clear all letters from grid',
+    clearGridTitle: 'Clear all letters (Esc)'
   },
   
   he: {
@@ -127,7 +132,12 @@ const translations = {
     hintsRemaining: 'רמזים ({count})',
     noHintsRemaining: 'אין רמזים',
     hintModalTitle: 'רמז',
-    hintFor: 'רמז עבור:'
+    hintFor: 'רמז עבור:',
+    
+    // Clear Button
+    clearGrid: 'נקה רשת',
+    clearGridAriaLabel: 'נקה את כל האותיות מהרשת',
+    clearGridTitle: 'נקה את כל האותיות (Esc)'
   }
 };
 
