@@ -2,6 +2,8 @@
  * GameStateManager - Manages game state and progression
  */
 
+import { RTLSupport } from './RTLSupport.js';
+
 export class GameStateManager {
   constructor(puzzle) {
     this.puzzle = puzzle;
@@ -465,8 +467,15 @@ export class GameStateManager {
     
     for (let row = 0; row < 4; row++) {
       for (let col = 0; col < 4; col++) {
-        const playerLetter = playerGrid[row][col].toUpperCase();
-        const correctLetter = correctGrid[row][col].toUpperCase();
+        // Normalize letters for comparison (handles Hebrew final forms, etc.)
+        const playerLetter = RTLSupport.normalizeText(
+          playerGrid[row][col].toUpperCase(),
+          this.puzzle.language
+        );
+        const correctLetter = RTLSupport.normalizeText(
+          correctGrid[row][col].toUpperCase(),
+          this.puzzle.language
+        );
         
         let status = 'incorrect';
         
@@ -476,8 +485,12 @@ export class GameStateManager {
           allCorrect = false;
           
           // Check if letter exists in the same row or column (wrong position)
-          const rowLetters = correctGrid[row].map(l => l.toUpperCase());
-          const colLetters = correctGrid.map(r => r[col].toUpperCase());
+          const rowLetters = correctGrid[row].map(l => 
+            RTLSupport.normalizeText(l.toUpperCase(), this.puzzle.language)
+          );
+          const colLetters = correctGrid.map(r => 
+            RTLSupport.normalizeText(r[col].toUpperCase(), this.puzzle.language)
+          );
           
           if (rowLetters.includes(playerLetter) || colLetters.includes(playerLetter)) {
             status = 'wrong-position';

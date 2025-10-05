@@ -14,14 +14,25 @@
   <div id="app">
     <!-- Header -->
     <header class="game-header">
-      <h1>Magic Four²</h1>
-      <div class="header-right">
-        <div id="game-info"></div>
+      <div class="header-left">
         <button id="hints-btn" class="hints-button" aria-label="Hints">
-          <span class="hints-icon">💡</span>
+          <svg class="hints-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8a6 6 0 0 0-12 0c0 1.33.47 2.48 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path>
+          </svg>
           <span id="hints-count" class="hints-count">2</span>
         </button>
-        <button id="how-to-play-btn" class="how-to-play-link" aria-label="How to play">❓</button>
+      </div>
+      <h1>Magic Four²</h1>
+      <div class="header-right">
+        <button id="how-to-play-btn" class="how-to-play-link" aria-label="How to play">
+          <svg class="help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
       </div>
     </header>
 
@@ -52,7 +63,15 @@
     <!-- Footer -->
     <footer class="game-footer">
       <p>Solve the riddles to reveal the magic square!</p>
-      <p><a href="./editor/" style="color: #667eea; text-decoration: none;">✏️ Create your own puzzle</a></p>
+      <p>
+        <a href="./editor/" class="editor-link">
+          <svg class="editor-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Create your own puzzle
+        </a>
+      </p>
     </footer>
   </div>
 

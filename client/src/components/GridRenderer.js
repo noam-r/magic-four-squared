@@ -3,6 +3,7 @@
  */
 
 import { InputValidator } from '../modules/InputValidator.js';
+import { RTLSupport } from '../modules/RTLSupport.js';
 
 export class GridRenderer {
   constructor(container, puzzle, gameState, onSubmit) {
@@ -48,35 +49,35 @@ export class GridRenderer {
     this.hiddenInput = hiddenInput;
     this.container.appendChild(hiddenInput);
 
-    // Create grid wrapper with labels
+    // Create wrapper for grid with labels
     const gridWrapper = document.createElement('div');
     gridWrapper.className = 'grid-with-labels';
     
-    // Create top column labels
-    const topLabels = document.createElement('div');
-    topLabels.className = 'grid-labels grid-labels-top';
+    // Create column labels (top)
+    const colLabels = document.createElement('div');
+    colLabels.className = 'col-labels';
     for (let col = 0; col < 4; col++) {
       const label = document.createElement('div');
-      label.className = 'grid-label';
+      label.className = 'col-label';
       label.textContent = col + 1;
-      topLabels.appendChild(label);
+      colLabels.appendChild(label);
     }
-    gridWrapper.appendChild(topLabels);
+    gridWrapper.appendChild(colLabels);
     
-    // Create middle section with left labels and grid
-    const middleSection = document.createElement('div');
-    middleSection.className = 'grid-middle-section';
+    // Create row with row labels and grid
+    const gridRow = document.createElement('div');
+    gridRow.className = 'grid-row';
     
-    // Create left row labels
-    const leftLabels = document.createElement('div');
-    leftLabels.className = 'grid-labels grid-labels-left';
+    // Create row labels (left)
+    const rowLabels = document.createElement('div');
+    rowLabels.className = 'row-labels';
     for (let row = 0; row < 4; row++) {
       const label = document.createElement('div');
-      label.className = 'grid-label';
+      label.className = 'row-label';
       label.textContent = row + 1;
-      leftLabels.appendChild(label);
+      rowLabels.appendChild(label);
     }
-    middleSection.appendChild(leftLabels);
+    gridRow.appendChild(rowLabels);
     
     // Create grid element
     const grid = document.createElement('div');
@@ -95,9 +96,8 @@ export class GridRenderer {
       }
     }
     
-    middleSection.appendChild(grid);
-    gridWrapper.appendChild(middleSection);
-    
+    gridRow.appendChild(grid);
+    gridWrapper.appendChild(gridRow);
     this.container.appendChild(gridWrapper);
     this.grid = grid;
 
@@ -250,8 +250,10 @@ export class GridRenderer {
       console.log('✅ Valid for language:', isValidForLanguage);
       
       if (isValidForLanguage) {
-        console.log('✏️ Updating cell with:', upperKey);
-        this.updateCellWithSymmetric(row, col, upperKey);
+        // Normalize Hebrew final forms to regular forms
+        const normalizedKey = RTLSupport.normalizeText(upperKey, this.puzzle.language);
+        console.log('✏️ Updating cell with:', normalizedKey);
+        this.updateCellWithSymmetric(row, col, normalizedKey);
         this.onInputChange();
         
         // Move to next cell
