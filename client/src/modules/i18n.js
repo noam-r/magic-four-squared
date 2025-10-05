@@ -46,7 +46,25 @@ const translations = {
     
     // Errors
     failedToLoad: 'Failed to initialize game:',
-    noPuzzlesAvailable: 'No puzzles available'
+    noPuzzlesAvailable: 'No puzzles available',
+    
+    // Welcome Modal
+    howToPlay: 'How to Play',
+    welcomeTitle: 'Welcome to Magic Four²!',
+    welcomeIntro: 'Solve riddles to fill a magic square where rows and columns share the same letters.',
+    howToPlayTitle: 'How to Play:',
+    howToPlayStep1: 'Solve the riddles and type your answers into the grid',
+    howToPlayStep2: 'When you type a letter, it appears in two places at once (magic!)',
+    howToPlayStep3: 'Fill the whole grid and check your answer to see if you got it right',
+    gotIt: 'Got it!',
+    close: 'Close',
+    
+    // Hints System
+    hints: 'Hints',
+    hintsRemaining: 'Hints ({count})',
+    noHintsRemaining: 'No hints left',
+    hintModalTitle: 'Hint',
+    hintFor: 'Hint for:'
   },
   
   he: {
@@ -91,7 +109,25 @@ const translations = {
     
     // Errors
     failedToLoad: 'נכשל בטעינת המשחק:',
-    noPuzzlesAvailable: 'אין חידות זמינות'
+    noPuzzlesAvailable: 'אין חידות זמינות',
+    
+    // Welcome Modal
+    howToPlay: 'איך משחקים',
+    welcomeTitle: 'ברוכים הבאים לריבוע קסם 4²!',
+    welcomeIntro: 'פתרו חידות כדי למלא ריבוע קסם שבו שורות ועמודות חולקות את אותן האותיות.',
+    howToPlayTitle: 'איך משחקים:',
+    howToPlayStep1: 'פתרו את החידות והקלידו את התשובות לתוך הרשת',
+    howToPlayStep2: 'כשאתם מקלידים אות, היא מופיעה בשני מקומות בו-זמנית (קסם!)',
+    howToPlayStep3: 'מלאו את כל הרשת ובדקו את התשובה כדי לראות אם פתרתם נכון',
+    gotIt: 'הבנתי!',
+    close: 'סגור',
+    
+    // Hints System
+    hints: 'רמזים',
+    hintsRemaining: 'רמזים ({count})',
+    noHintsRemaining: 'אין רמזים',
+    hintModalTitle: 'רמז',
+    hintFor: 'רמז עבור:'
   }
 };
 

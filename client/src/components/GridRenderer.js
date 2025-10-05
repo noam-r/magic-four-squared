@@ -1,5 +1,5 @@
 /**
- * GridRenderer - Interactive 4x4 grid with direct keyboard input (Wordle-style)
+ * GridRenderer - Interactive 4x4 grid with free cell editing and symmetric auto-fill
  */
 
 import { InputValidator } from '../modules/InputValidator.js';
@@ -11,10 +11,10 @@ export class GridRenderer {
     this.gameState = gameState;
     this.onSubmit = onSubmit;
     this.cells = [];
-    this.currentInput = '';
-    this.currentPosition = 0;
-    this.activeRow = null;
-    this.onInputChange = () => { }; // Callback for input changes
+    this.selectedCell = { row: 0, col: 0 }; // Currently selected cell
+    this.isUpdatingSymmetric = false; // Prevent infinite loops
+    this.onInputChange = () => {}; // Callback for input changes
+    this.onClearAll = null; // Callback for clear all (Escape key)
   }
 
   /**
@@ -43,17 +43,47 @@ export class GridRenderer {
     hiddenInput.style.padding = '0';
     hiddenInput.style.margin = '0';
     hiddenInput.style.overflow = 'hidden';
-    hiddenInput.style.clip = 'rect(0, 0, 0, 0)';
+    hiddenInput.style.clipPath = 'inset(50%)';
     hiddenInput.style.whiteSpace = 'nowrap';
     this.hiddenInput = hiddenInput;
     this.container.appendChild(hiddenInput);
 
+    // Create grid wrapper with labels
+    const gridWrapper = document.createElement('div');
+    gridWrapper.className = 'grid-with-labels';
+    
+    // Create top column labels
+    const topLabels = document.createElement('div');
+    topLabels.className = 'grid-labels grid-labels-top';
+    for (let col = 0; col < 4; col++) {
+      const label = document.createElement('div');
+      label.className = 'grid-label';
+      label.textContent = col + 1;
+      topLabels.appendChild(label);
+    }
+    gridWrapper.appendChild(topLabels);
+    
+    // Create middle section with left labels and grid
+    const middleSection = document.createElement('div');
+    middleSection.className = 'grid-middle-section';
+    
+    // Create left row labels
+    const leftLabels = document.createElement('div');
+    leftLabels.className = 'grid-labels grid-labels-left';
+    for (let row = 0; row < 4; row++) {
+      const label = document.createElement('div');
+      label.className = 'grid-label';
+      label.textContent = row + 1;
+      leftLabels.appendChild(label);
+    }
+    middleSection.appendChild(leftLabels);
+    
     // Create grid element
     const grid = document.createElement('div');
     grid.className = 'grid';
     grid.setAttribute('role', 'grid');
     grid.setAttribute('aria-label', '4x4 magic square grid');
-    grid.tabIndex = 0; // Make grid focusable
+    grid.tabIndex = 0;
 
     // Create 16 cells (4x4)
     this.cells = [];
@@ -64,75 +94,72 @@ export class GridRenderer {
         grid.appendChild(cell);
       }
     }
-
-    this.container.appendChild(grid);
-
-    // Store grid reference
+    
+    middleSection.appendChild(grid);
+    gridWrapper.appendChild(middleSection);
+    
+    this.container.appendChild(gridWrapper);
     this.grid = grid;
 
-    // Add click handler to focus hidden input (for mobile keyboard)
+    // Add click handler to focus grid
     grid.addEventListener('click', (e) => {
-      console.log('Grid clicked, focusing hidden input for mobile...');
+      console.log('🖱️ Grid clicked');
       e.preventDefault();
-      this.hiddenInput.focus();
+      grid.focus(); // Focus grid for keyboard input
+      this.hiddenInput.focus(); // Also focus hidden input for mobile
+      console.log('✅ Grid focused after click, activeElement:', document.activeElement);
     });
 
-    // Handle input from hidden field
+    // Handle input from hidden field (mobile)
     hiddenInput.addEventListener('input', (e) => {
       const value = e.target.value.toUpperCase();
       if (value.length > 0) {
         const lastChar = value[value.length - 1];
-        // Simulate keyboard event
-        this.handleKeyPress({ key: lastChar, preventDefault: () => { } });
+        this.handleKeyPress({ key: lastChar, preventDefault: () => {} });
       }
-      // Clear the input to allow continuous typing
       hiddenInput.value = '';
     });
 
     // Handle backspace on hidden input
     hiddenInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace') {
-        this.handleKeyPress(e);
-      } else if (e.key === 'Enter') {
+      if (e.key === 'Backspace' || e.key === 'Enter') {
         this.handleKeyPress(e);
       }
     });
 
-    // Add global keyboard listener to capture all keyboard input
-    // This ensures typing works even if grid loses focus
+    // Add keyboard listener to grid
+    grid.addEventListener('keydown', (e) => {
+      this.handleKeyPress(e);
+    });
+
+    // Add global keyboard listener as fallback
     if (!this.globalKeyListener) {
       this.globalKeyListener = (e) => {
-        // Only handle if target is not an input, textarea, or button
         const target = e.target;
-        const isInputElement = target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'BUTTON' ||
-          target.isContentEditable;
-
+        const isInputElement = target.tagName === 'INPUT' || 
+                               target.tagName === 'TEXTAREA' || 
+                               target.tagName === 'BUTTON' ||
+                               target.isContentEditable;
+        
         if (!isInputElement) {
-          console.log('Global key pressed:', e.key);
           this.handleKeyPress(e);
-          // Trigger input change callback after handling key
-          if (e.key !== 'Enter') {
-            this.onInputChange();
-          }
         }
       };
       document.addEventListener('keydown', this.globalKeyListener);
     }
 
     this.update();
-
-    // Focus the grid immediately
-    grid.focus();
-    console.log('Grid focused, activeRow:', this.activeRow);
+    
+    // Focus the grid immediately so keyboard works
+    setTimeout(() => {
+      console.log('🎯 Focusing grid');
+      grid.focus();
+      console.log('✅ Grid focused, activeElement:', document.activeElement);
+    }, 100);
   }
 
   /**
    * Creates a single grid cell
-   * @param {number} row - Row index
-   * @param {number} col - Column index
-   * @returns {HTMLElement} - Cell element
    */
   createCell(row, col) {
     const cell = document.createElement('div');
@@ -141,247 +168,292 @@ export class GridRenderer {
     cell.dataset.col = col;
     cell.setAttribute('role', 'gridcell');
     cell.setAttribute('aria-label', `Cell row ${row + 1}, column ${col + 1}`);
-
+    
+    // Add click handler to select cell
+    cell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.selectCell(row, col);
+    });
+    
     return cell;
   }
 
   /**
+   * Selects a cell for editing
+   */
+  selectCell(row, col) {
+    // Don't select revealed cells
+    if (this.gameState.isWordRevealed(row)) {
+      return;
+    }
+    
+    this.selectedCell = { row, col };
+    this.update();
+    this.hiddenInput.focus();
+  }
+
+  /**
    * Handles keyboard input
-   * @param {KeyboardEvent} e - Keyboard event
    */
   handleKeyPress(e) {
-    console.log('handleKeyPress called, activeRow:', this.activeRow, 'key:', e.key);
-
-    // Ignore if no active row
-    if (this.activeRow === null) {
-      console.log('No active row, ignoring input');
+    console.log('🔑 handleKeyPress called, key:', e.key);
+    const { row, col } = this.selectedCell;
+    console.log('📍 Selected cell:', row, col);
+    
+    // Check if cell is revealed
+    if (this.gameState.isWordRevealed(row)) {
+      console.log('⚠️ Cell is revealed, ignoring input');
       return;
     }
 
-    const key = e.key.toUpperCase();
+    const key = e.key;
+
+    // Handle Escape key - clear entire grid
+    if (key === 'Escape') {
+      e.preventDefault();
+      if (this.onClearAll) {
+        this.onClearAll();
+      }
+      return;
+    }
 
     // Handle backspace
-    if (e.key === 'Backspace') {
+    if (key === 'Backspace') {
       e.preventDefault();
-      if (this.currentPosition > 0) {
-        this.currentPosition--;
-        this.currentInput = this.currentInput.slice(0, -1);
-        console.log('Backspace - currentInput:', this.currentInput);
-        this.updateActiveRow();
-        this.onInputChange();
-      }
-      return;
-    }
-
-    // Handle Enter (submit)
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (this.currentInput.length === 4) {
-        console.log('Enter pressed, submitting:', this.currentInput);
-        this.submitCurrentInput();
-      }
-      return;
-    }
-
-    // Handle letter input (English A-Z or Hebrew א-ת)
-    const isEnglish = /^[A-Z]$/i.test(key);
-    const isHebrew = key.length === 1 && key >= '\u05D0' && key <= '\u05EA';
-
-    if (this.currentPosition < 4 && (isEnglish || isHebrew)) {
-      e.preventDefault();
-
-      console.log('Letter input detected:', key, 'isEnglish:', isEnglish, 'isHebrew:', isHebrew);
-
-      // Validate character for current language
-      const feedback = InputValidator.getRealTimeFeedback(key, this.puzzle.language);
-      console.log('Validation feedback:', feedback);
-
-      // Add the letter (use uppercase for English, keep Hebrew as-is)
-      const letterToAdd = isEnglish ? key : key;
-      this.currentInput += letterToAdd;
-      this.currentPosition++;
-      console.log('Added letter - currentInput:', this.currentInput, 'position:', this.currentPosition);
-      this.updateActiveRow();
+      this.updateCellWithSymmetric(row, col, '');
       this.onInputChange();
-    }
-  }
-
-  /**
-   * Updates the active row display
-   */
-  updateActiveRow() {
-    console.log('updateActiveRow called - activeRow:', this.activeRow, 'currentInput:', this.currentInput);
-
-    if (this.activeRow === null) {
-      console.log('activeRow is null, returning');
       return;
     }
 
-    // Update cells in active row
-    for (let col = 0; col < 4; col++) {
-      const cellIndex = this.activeRow * 4 + col;
-      const cell = this.cells[cellIndex];
+    // Handle arrow keys for navigation
+    if (key.startsWith('Arrow')) {
+      e.preventDefault();
+      this.handleArrowKey(key);
+      return;
+    }
 
-      console.log(`Updating cell ${cellIndex} (row ${this.activeRow}, col ${col})`);
-
-      if (col < this.currentInput.length) {
-        cell.textContent = this.currentInput[col];
-        cell.className = 'grid-cell active-row';
-        console.log(`  Set to letter: ${this.currentInput[col]}`);
-      } else if (col === this.currentInput.length) {
-        cell.textContent = '';
-        cell.className = 'grid-cell active-row current-input';
-        console.log('  Set as current-input (cursor)');
-      } else {
-        cell.textContent = '';
-        cell.className = 'grid-cell active-row';
-        console.log('  Set as empty active-row');
+    // Handle letter input
+    const upperKey = key.toUpperCase();
+    const isEnglish = /^[A-Z]$/i.test(upperKey);
+    const isHebrew = key.length === 1 && key >= '\u05D0' && key <= '\u05EA';
+    
+    console.log('🔤 Testing letter:', upperKey, 'isEnglish:', isEnglish, 'isHebrew:', isHebrew);
+    
+    if (isEnglish || isHebrew) {
+      e.preventDefault();
+      
+      // For single character input, just check if it matches the puzzle language
+      const isValidForLanguage = (this.puzzle.language === 'en' && isEnglish) || 
+                                  (this.puzzle.language === 'he' && isHebrew) ||
+                                  (this.puzzle.language !== 'en' && this.puzzle.language !== 'he'); // Allow any for other languages
+      
+      console.log('✅ Valid for language:', isValidForLanguage);
+      
+      if (isValidForLanguage) {
+        console.log('✏️ Updating cell with:', upperKey);
+        this.updateCellWithSymmetric(row, col, upperKey);
+        this.onInputChange();
+        
+        // Move to next cell
+        this.moveToNextCell();
       }
+    } else {
+      console.log('❌ Key not recognized as letter');
     }
   }
 
   /**
-   * Submits the current input
+   * Updates a cell and its symmetric counterpart
    */
-  submitCurrentInput() {
-    if (this.currentInput.length === 4 && this.onSubmit) {
-      this.onSubmit(this.currentInput);
+  updateCellWithSymmetric(row, col, letter) {
+    // Prevent infinite loop
+    if (this.isUpdatingSymmetric) {
+      return;
     }
-  }
-
-  /**
-   * Clears the current input
-   */
-  clearInput() {
-    this.currentInput = '';
-    this.currentPosition = 0;
-    this.updateActiveRow();
-  }
-
-  /**
-   * Sets the active row for input
-   * @param {number} row - Row index (0-3)
-   */
-  setActiveRow(row) {
-    console.log('Setting active row to:', row);
-    this.activeRow = row;
-    this.currentInput = '';
-    this.currentPosition = 0;
+    
+    // Update the cell
+    this.gameState.updateCell(row, col, letter);
+    
+    // Update symmetric cell (unless it's a diagonal cell)
+    if (row !== col) {
+      this.isUpdatingSymmetric = true;
+      this.gameState.updateCell(col, row, letter);
+      
+      // Visual feedback for symmetric fill
+      const symmetricIndex = col * 4 + row;
+      const symmetricCell = this.cells[symmetricIndex];
+      if (symmetricCell && letter) {
+        symmetricCell.classList.add('symmetric-fill');
+        setTimeout(() => {
+          symmetricCell.classList.remove('symmetric-fill');
+        }, 300);
+      }
+      
+      this.isUpdatingSymmetric = false;
+    }
+    
     this.update();
+  }
 
-    // Focus the hidden input for mobile keyboard
-    if (this.hiddenInput) {
-      this.hiddenInput.focus();
-      console.log('Hidden input focused for mobile keyboard');
-    } else if (this.grid) {
-      this.grid.focus();
-      console.log('Grid focused after setting active row');
+  /**
+   * Handles arrow key navigation
+   */
+  handleArrowKey(key) {
+    let { row, col } = this.selectedCell;
+    
+    switch (key) {
+      case 'ArrowUp':
+        row = Math.max(0, row - 1);
+        break;
+      case 'ArrowDown':
+        row = Math.min(3, row + 1);
+        break;
+      case 'ArrowLeft':
+        col = Math.max(0, col - 1);
+        break;
+      case 'ArrowRight':
+        col = Math.min(3, col + 1);
+        break;
+    }
+    
+    this.selectCell(row, col);
+  }
+
+  /**
+   * Moves to the next empty cell
+   */
+  moveToNextCell() {
+    let { row, col } = this.selectedCell;
+    
+    // Move right, then down
+    col++;
+    if (col > 3) {
+      col = 0;
+      row++;
+    }
+    
+    // Wrap around or stop at end
+    if (row <= 3) {
+      this.selectCell(row, col);
     }
   }
 
   /**
-   * Updates the grid based on current game state
+   * Updates the grid display
    */
   update() {
     const state = this.gameState.getState();
     const revealedSet = new Set(state.revealedWords);
+    const playerGrid = this.gameState.getPlayerGrid();
 
     // Update each cell
     for (let row = 0; row < 4; row++) {
       for (let col = 0; col < 4; col++) {
         const cellIndex = row * 4 + col;
         const cell = this.cells[cellIndex];
-
+        
         // Check if this row is revealed
         const isRevealed = revealedSet.has(row);
-
+        
+        // Check if this is the selected cell
+        const isSelected = this.selectedCell.row === row && this.selectedCell.col === col;
+        
         if (isRevealed) {
           // Show revealed letter
           const letter = this.puzzle.grid[row][col];
           cell.textContent = letter;
           cell.className = 'grid-cell revealed';
           cell.setAttribute('aria-label', `${letter}, row ${row + 1}, column ${col + 1}`);
-        } else if (row === this.activeRow) {
-          // This is the active input row
-          if (col < this.currentInput.length) {
-            cell.textContent = this.currentInput[col];
-            cell.className = 'grid-cell active-row';
-          } else if (col === this.currentInput.length) {
-            cell.textContent = '';
-            cell.className = 'grid-cell active-row current-input';
-          } else {
-            cell.textContent = '';
-            cell.className = 'grid-cell active-row';
-          }
         } else {
-          // Empty cell
-          cell.textContent = '';
-          cell.className = 'grid-cell empty';
-          cell.setAttribute('aria-label', `Empty cell, row ${row + 1}, column ${col + 1}`);
+          // Show player input
+          const letter = playerGrid[row][col];
+          cell.textContent = letter;
+          
+          if (isSelected) {
+            cell.className = 'grid-cell selected';
+          } else if (letter) {
+            cell.className = 'grid-cell filled';
+          } else {
+            cell.className = 'grid-cell empty';
+          }
+          
+          cell.setAttribute('aria-label', `${letter || 'Empty'}, row ${row + 1}, column ${col + 1}`);
         }
       }
     }
   }
 
   /**
-   * Shows feedback for a specific word position
-   * @param {number} position - Word position (0-3)
-   * @param {Array} feedback - Array of feedback objects
+   * Shows feedback for the entire grid
    */
-  showFeedback(position, feedback) {
-    if (!feedback || feedback.length === 0) return;
-
-    // Show feedback for each letter in the row
-    for (let col = 0; col < 4; col++) {
-      const cellIndex = position * 4 + col;
+  showGridFeedback(feedback) {
+    feedback.forEach(({ row, col, correct }) => {
+      const cellIndex = row * 4 + col;
       const cell = this.cells[cellIndex];
-      const letterFeedback = feedback[col];
-
-      if (!letterFeedback) continue;
-
-      // Apply feedback styling with staggered animation
+      
       setTimeout(() => {
-        cell.textContent = letterFeedback.char;
-
-        switch (letterFeedback.status) {
-          case 'correct':
-            cell.className = 'grid-cell correct';
-            break;
-          case 'wrong-position':
-            cell.className = 'grid-cell wrong-position';
-            break;
-          case 'incorrect':
-            cell.className = 'grid-cell incorrect';
-            break;
+        if (correct) {
+          cell.classList.add('correct');
+        } else {
+          cell.classList.add('incorrect');
         }
-      }, col * 100);
-    }
-
-    // After feedback animation, update to final state
-    setTimeout(() => {
-      this.update();
-    }, 1000);
-  }
-
-  /**
-   * Highlights a specific word (row)
-   * @param {number} position - Word position (0-3)
-   */
-  highlightWord(position) {
-    for (let col = 0; col < 4; col++) {
-      const cellIndex = position * 4 + col;
-      const cell = this.cells[cellIndex];
-      cell.classList.add('highlight');
-    }
-  }
-
-  /**
-   * Clears all highlights
-   */
-  clearHighlights() {
-    this.cells.forEach(cell => {
-      cell.classList.remove('highlight');
+      }, (row * 4 + col) * 50);
     });
+
+    // Clear feedback after a delay (but don't call update which would clear the letters!)
+    setTimeout(() => {
+      this.cells.forEach(cell => {
+        cell.classList.remove('correct', 'incorrect');
+      });
+    }, 2000);
+  }
+
+  /**
+   * Shows feedback with animated sequence, then clears incorrect cells
+   * @param {Array} feedback - Feedback for each cell
+   * @param {Function} onComplete - Callback after animation completes
+   */
+  showGridFeedbackWithClear(feedback, onComplete) {
+    // Step 1: Show correct/incorrect/wrong-position feedback (staggered animation)
+    feedback.forEach(({ row, col, status }) => {
+      const cellIndex = row * 4 + col;
+      const cell = this.cells[cellIndex];
+      
+      setTimeout(() => {
+        if (status === 'correct') {
+          cell.classList.add('correct');
+        } else if (status === 'wrong-position') {
+          cell.classList.add('wrong-position');
+        } else {
+          cell.classList.add('incorrect');
+        }
+      }, (row * 4 + col) * 30);
+    });
+
+    // Step 2: After 1.5 seconds, fade non-correct cells to gray
+    setTimeout(() => {
+      feedback.forEach(({ row, col, status }) => {
+        if (status !== 'correct') {
+          const cellIndex = row * 4 + col;
+          const cell = this.cells[cellIndex];
+          cell.classList.remove('incorrect', 'wrong-position');
+          cell.classList.add('fading-out');
+        }
+      });
+    }, 1500);
+
+    // Step 3: After 2.5 seconds total, clear non-correct cells
+    setTimeout(() => {
+      // Remove all feedback classes
+      this.cells.forEach(cell => {
+        cell.classList.remove('correct', 'incorrect', 'wrong-position', 'fading-out');
+      });
+      
+      // Call completion callback to actually clear the cell values
+      if (onComplete) {
+        onComplete();
+      }
+    }, 2500);
   }
 
   /**
@@ -397,19 +469,17 @@ export class GridRenderer {
   }
 
   /**
-   * Gets the current input
-   * @returns {string} - Current input
+   * Checks if grid is complete
    */
-  getCurrentInput() {
-    return this.currentInput;
+  isGridComplete() {
+    return this.gameState.isGridComplete();
   }
 
   /**
-   * Checks if input is complete
-   * @returns {boolean} - True if 4 letters entered
+   * Gets the player's grid
    */
-  isInputComplete() {
-    return this.currentInput.length === 4;
+  getPlayerGrid() {
+    return this.gameState.getPlayerGrid();
   }
 
   /**
@@ -424,5 +494,74 @@ export class GridRenderer {
       this.hiddenInput.remove();
       this.hiddenInput = null;
     }
+  }
+
+  // ===== BACKWARD COMPATIBILITY METHODS =====
+  // These maintain compatibility with old Game.js code
+  
+  /**
+   * Sets active row (backward compatibility - now selects first cell of row)
+   */
+  setActiveRow(row) {
+    this.selectCell(row, 0);
+  }
+
+  /**
+   * Gets current input (backward compatibility - returns selected row)
+   */
+  getCurrentInput() {
+    const row = this.selectedCell.row;
+    return this.gameState.getPlayerGrid()[row].join('');
+  }
+
+  /**
+   * Clears input (backward compatibility - clears selected row)
+   */
+  clearInput() {
+    const row = this.selectedCell.row;
+    for (let col = 0; col < 4; col++) {
+      this.gameState.updateCell(row, col, '');
+    }
+    this.update();
+  }
+
+  /**
+   * Checks if input is complete (backward compatibility)
+   */
+  isInputComplete() {
+    return this.isGridComplete();
+  }
+
+  /**
+   * Shows feedback (backward compatibility)
+   */
+  showFeedback(position, feedback) {
+    // Convert old row-based feedback to grid feedback
+    const gridFeedback = feedback.map((f, col) => ({
+      row: position,
+      col,
+      correct: f.status === 'correct'
+    }));
+    this.showGridFeedback(gridFeedback);
+  }
+
+  /**
+   * Highlights word (backward compatibility)
+   */
+  highlightWord(position) {
+    for (let col = 0; col < 4; col++) {
+      const cellIndex = position * 4 + col;
+      const cell = this.cells[cellIndex];
+      cell.classList.add('highlight');
+    }
+  }
+
+  /**
+   * Clears highlights (backward compatibility)
+   */
+  clearHighlights() {
+    this.cells.forEach(cell => {
+      cell.classList.remove('highlight');
+    });
   }
 }

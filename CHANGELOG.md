@@ -5,6 +5,57 @@ All notable changes to Magic Four² will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-05-10
+
+### Major UX Overhaul 🎉
+
+This release completely reimagines the gameplay experience with a focus on simplicity, clarity, and modern design.
+
+### Changed
+- **Full Grid Editing**: Players can now type in any cell, not just row-by-row
+- **Symmetric Auto-Fill**: Letters automatically fill both row and column positions (magic square logic)
+- **Grid Validation**: Check entire grid at once instead of row-by-row submission
+- **Smart Feedback**: Wrong letters fade to gray then auto-clear, keeping correct ones
+- **Global Hints System**: Limited to 2 hints per game via global button (💡 2)
+- **Clean Riddle Display**: Removed individual hint buttons, status messages, and clutter
+- **Modern Design**: Wordle-style minimalist aesthetic with clean typography
+
+### Added
+- **Welcome Modal**: First-time user onboarding with 3-step instructions
+- **How to Play Button**: Accessible help (?) in header
+- **Clear Grid Button**: One-click clear with Escape key shortcut
+- **Grid Labels**: Row/column numbers (1-4) matching riddle numbers
+- **Wrong Position Feedback**: Yellow highlighting for letters in wrong spots (Wordle-style)
+- **ClearButton Component**: New reusable component for grid clearing
+
+### Removed
+- Row-by-row progression system
+- Individual "Show Hint" buttons on riddles
+- "Solved: 0/4" counter (no longer relevant)
+- Active row highlighting
+- Row-based status messages
+
+### Improved
+- Validation now shows green (correct), yellow (wrong position), and gray (incorrect)
+- Error messages auto-clear after feedback animation
+- Hints only appear when revealed via global button
+- Grid labels create clear visual connection to riddles
+- Larger font sizes for better readability
+- Simplified UI with less visual noise
+
+### Technical
+- Added `ClearButton.js` component
+- Enhanced `GameStateManager` with full grid validation
+- Updated `GridRenderer` with symmetric cell logic and labels
+- Refactored `RiddleDisplay` for minimal design
+- Added comprehensive i18n strings for new features
+- All tests passing (45 passed, 1 skipped)
+
+### Breaking Changes
+- Game state structure updated (old saves may not be compatible)
+- Removed row-by-row API methods
+- Changed validation flow from incremental to full-grid
+
 ## [1.0.0] - 2025-04-10
 
 ### Added

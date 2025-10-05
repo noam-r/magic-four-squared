@@ -37,6 +37,10 @@ body {
   border-bottom: 1px solid #d3d6da;
   padding: 16px 20px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .game-header h1 {
@@ -45,6 +49,12 @@ body {
   color: #1a1a1b;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 #game-info {
@@ -61,6 +71,67 @@ body {
 
 .game-stats span {
   font-weight: 600;
+}
+
+/* Hints button */
+.hints-button {
+  background-color: #f59e0b;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hints-button:hover:not(:disabled) {
+  background-color: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hints-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.hints-button:disabled {
+  background-color: #d3d6da;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.hints-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.hints-count {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* How to Play button */
+.how-to-play-link {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.how-to-play-link:hover {
+  opacity: 1;
+  background-color: #f3f4f6;
+  transform: scale(1.1);
 }
 
 /* Main content */
@@ -127,56 +198,31 @@ body {
 }
 
 .riddle-item {
-  background-color: #f8f9fa;
-  border: 1px solid #d3d6da;
-  border-radius: 8px;
-  padding: 16px;
+  background-color: transparent;
+  border: none;
+  padding: 20px 0;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  transition: all 0.2s ease;
+  gap: 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.riddle-item.active {
-  background-color: #fff;
-  border-color: #6aaa64;
-  box-shadow: 0 2px 8px rgba(106, 170, 100, 0.15);
-}
-
-.riddle-item.solved {
-  background-color: #e8f5e9;
-  border-color: #6aaa64;
-}
-
-.riddle-item.failed {
-  background-color: #ffebee;
-  border-color: #ef5350;
+.riddle-item:last-child {
+  border-bottom: none;
 }
 
 .riddle-number {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background-color: #787c7e;
-  color: #fff;
+  background-color: #1a1a1b;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 16px;
-}
-
-.riddle-item.active .riddle-number {
-  background-color: #6aaa64;
-}
-
-.riddle-item.solved .riddle-number {
-  background-color: #6aaa64;
-}
-
-.riddle-item.failed .riddle-number {
-  background-color: #ef5350;
+  font-size: 15px;
 }
 
 .riddle-content {
@@ -184,64 +230,34 @@ body {
 }
 
 .riddle-text {
-  font-size: 15px;
+  font-size: 17px;
   color: #1a1a1b;
-  line-height: 1.5;
-  margin-bottom: 4px;
+  line-height: 1.6;
+  font-weight: 400;
 }
 
-.riddle-status {
-  font-size: 12px;
-  color: #787c7e;
-  font-weight: 600;
-}
-
-.riddle-item.solved .riddle-status {
-  color: #6aaa64;
-}
-
-.riddle-item.failed .riddle-status {
-  color: #ef5350;
-}
-
-.hint-container {
-  margin-top: 8px;
-}
-
-.hint-button {
-  background-color: #f0f0f0;
-  border: 1px solid #d3d6da;
+/* Revealed hint display (from global hints button) */
+.hint-display.revealed {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background-color: #fef3c7;
+  border-left: 3px solid #f59e0b;
   border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 13px;
-  color: #1a1a1b;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 500;
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.6;
+  display: none; /* Hidden by default, only show when explicitly revealed */
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.hint-button:hover {
-  background-color: #e8e8e8;
-  border-color: #878a8c;
+.hint-display.revealed.show {
+  display: flex;
 }
 
-.hint-button:active {
-  transform: scale(0.98);
-}
-
-.hint-display {
-  margin-top: 8px;
-  padding: 10px 12px;
-  background-color: #fff9e6;
-  border: 1px solid #f4d03f;
-  border-radius: 4px;
-  font-size: 13px;
-  color: #5a5a5a;
-  line-height: 1.4;
-  font-style: italic;
+.hint-display.revealed .hint-icon {
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .explanation-display {
@@ -263,13 +279,66 @@ body {
   gap: 16px;
 }
 
+.grid-with-labels {
+  display: inline-block;
+}
+
+.grid-labels {
+  display: flex;
+  gap: 5px;
+}
+
+.grid-labels-top {
+  margin-left: 32px; /* Offset for left labels */
+  margin-bottom: 8px;
+  justify-content: space-around;
+  width: 350px;
+}
+
+.grid-labels-left {
+  flex-direction: column;
+  gap: 5px;
+}
+
+.grid-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #1a1a1b;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.grid-labels-left .grid-label {
+  /* Fixed size circle */
+}
+
+.grid-labels-top .grid-label {
+  /* Fixed size circle */
+}
+
+.grid-middle-section {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grid-labels-left {
+  justify-content: space-around;
+  height: 350px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
-  width: 100%;
+  width: 350px;
   max-width: 350px;
-  margin: 0 auto;
 }
 
 .grid-cell {
@@ -285,9 +354,34 @@ body {
   background-color: #ffffff;
   transition: all 0.2s ease;
   user-select: none;
-  cursor: default;
+  cursor: pointer;
 }
 
+.grid-cell.empty:hover:not(.revealed) {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.grid-cell.filled {
+  background-color: #ffffff;
+  border-color: #878a8c;
+}
+
+.grid-cell.selected {
+  border: 3px solid #5a67d8;
+  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.2);
+}
+
+.grid-cell.symmetric-fill {
+  animation: symmetricPulse 0.3s ease;
+}
+
+@keyframes symmetricPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); background-color: #e0e7ff; }
+}
+
+/* Keep old styles for backward compatibility during transition */
 .grid-cell.active-row {
   border-color: #878a8c;
   cursor: text;
@@ -332,6 +426,13 @@ body {
   animation: flip 0.5s ease;
 }
 
+.grid-cell.fading-out {
+  background-color: #d3d6da;
+  border-color: #d3d6da;
+  color: #9ca3af;
+  animation: fadeToGray 0.5s ease;
+}
+
 .grid-cell.highlight {
   border-color: #6aaa64;
   border-width: 3px;
@@ -342,6 +443,17 @@ body {
   0% { transform: scaleY(1); }
   50% { transform: scaleY(0.8); }
   100% { transform: scaleY(1); }
+}
+
+@keyframes fadeToGray {
+  0% { 
+    background-color: #787c7e;
+    color: #ffffff;
+  }
+  100% { 
+    background-color: #d3d6da;
+    color: #9ca3af;
+  }
 }
 
 @keyframes pulse {
@@ -355,6 +467,19 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+}
+
+/* Grid section wrapper */
+.grid-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.grid-section #grid-container {
+  width: 100%;
 }
 
 .check-button {
@@ -388,6 +513,47 @@ body {
   cursor: not-allowed;
   opacity: 0.6;
   box-shadow: none;
+}
+
+/* Clear button - subtle, secondary action */
+.clear-button-wrapper {
+  margin-top: 4px;
+}
+
+.clear-button {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #787c7e;
+  background-color: transparent;
+  border: 1px solid #d3d6da;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.clear-button:hover:not(:disabled) {
+  color: #f44336;
+  border-color: #f44336;
+  background-color: #fff5f5;
+}
+
+.clear-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.clear-button:disabled {
+  color: #d3d6da;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.clear-button::before {
+  content: '✕ ';
+  font-size: 14px;
 }
 
 .feedback-message {
@@ -660,5 +826,379 @@ input:focus-visible {
   
   .riddle-item {
     border-width: 2px;
+  }
+}
+
+
+/* Welcome Modal */
+.welcome-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.welcome-modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.welcome-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  color: #787c7e;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.welcome-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1b;
+}
+
+.welcome-modal-content h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1b;
+  margin-bottom: 12px;
+  padding-right: 40px;
+}
+
+.welcome-intro {
+  font-size: 16px;
+  color: #787c7e;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.welcome-modal-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1b;
+  margin-bottom: 12px;
+}
+
+.how-to-play-list {
+  list-style: none;
+  counter-reset: step-counter;
+  padding: 0;
+  margin: 0 0 24px 0;
+}
+
+.how-to-play-list li {
+  counter-increment: step-counter;
+  padding: 12px 0 12px 40px;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #1a1a1b;
+}
+
+.how-to-play-list li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 28px;
+  height: 28px;
+  background-color: #6aaa64;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.welcome-modal-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #6aaa64;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.welcome-modal-button:hover {
+  background-color: #5a9a54;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.welcome-modal-button:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* RTL support for modal */
+[dir="rtl"] .welcome-modal-close {
+  right: auto;
+  left: 16px;
+}
+
+[dir="rtl"] .welcome-modal-content h2 {
+  padding-right: 0;
+  padding-left: 40px;
+}
+
+[dir="rtl"] .how-to-play-list li {
+  padding: 12px 40px 12px 0;
+}
+
+[dir="rtl"] .how-to-play-list li::before {
+  left: auto;
+  right: 0;
+}
+
+/* Mobile responsive for modal */
+@media (max-width: 480px) {
+  .welcome-modal-content {
+    padding: 24px;
+  }
+  
+  .welcome-modal-content h2 {
+    font-size: 24px;
+  }
+  
+  .welcome-modal-content h3 {
+    font-size: 18px;
+  }
+  
+  .how-to-play-list li {
+    font-size: 14px;
+    padding-left: 36px;
+  }
+  
+  .how-to-play-list li::before {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  
+  [dir="rtl"] .how-to-play-list li {
+    padding-right: 36px;
+    padding-left: 0;
+  }
+}
+
+
+/* Hint Modal */
+.hint-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.hint-modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 450px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.hint-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  color: #787c7e;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.hint-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1b;
+}
+
+.hint-modal-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-bottom: 20px;
+  padding-right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint-riddle {
+  background-color: #f3f4f6;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.hint-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #787c7e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.hint-prompt {
+  font-size: 16px;
+  color: #1a1a1b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hint-text {
+  background-color: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.hint-text .hint-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.hint-text p {
+  font-size: 15px;
+  color: #78350f;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.hint-modal-button {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #f59e0b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hint-modal-button:hover {
+  background-color: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hint-modal-button:active {
+  transform: translateY(0);
+}
+
+/* RTL support for hint modal */
+[dir="rtl"] .hint-modal-close {
+  right: auto;
+  left: 16px;
+}
+
+[dir="rtl"] .hint-modal-content h2 {
+  padding-right: 0;
+  padding-left: 40px;
+}
+
+[dir="rtl"] .hint-text {
+  border-left: none;
+  border-right: 4px solid #f59e0b;
+}
+
+/* Mobile responsive for hint modal */
+@media (max-width: 480px) {
+  .hint-modal-content {
+    padding: 24px;
+  }
+  
+  .hint-modal-content h2 {
+    font-size: 20px;
+  }
+  
+  .hint-prompt {
+    font-size: 15px;
+  }
+  
+  .hint-text p {
+    font-size: 14px;
   }
 }

@@ -8,6 +8,7 @@ import { AnswerChecker } from './modules/AnswerChecker.js';
 import { GridRenderer } from './components/GridRenderer.js';
 import { RiddleDisplay } from './components/RiddleDisplay.js';
 import { CheckButton } from './components/CheckButton.js';
+import { ClearButton } from './components/ClearButton.js';
 import { i18n } from './modules/i18n.js';
 
 export class Game {
@@ -17,6 +18,7 @@ export class Game {
     this.gridRenderer = null;
     this.riddleDisplay = null;
     this.checkButton = null;
+    this.clearButton = null;
   }
 
   /**
@@ -91,6 +93,16 @@ export class Game {
 
     // Hide loading
     this.hideLoading();
+    
+    // Show welcome modal on first visit
+    this.checkAndShowWelcomeModal();
+    
+    // Setup how-to-play button
+    this.setupHowToPlayButton();
+    
+    // Setup hints button
+    this.setupHintsButton();
+    this.updateHintsButton();
   }
 
   /**
@@ -99,22 +111,33 @@ export class Game {
   initializeComponents() {
     const gridContainer = document.getElementById('grid-container');
     const checkButtonContainer = document.getElementById('check-button-container');
+    const clearButtonContainer = document.getElementById('clear-button-container');
     const riddlesContainer = document.getElementById('riddles-container');
 
     this.gridRenderer = new GridRenderer(gridContainer, this.puzzle, this.gameState, (answer) => {
       this.handleSubmit(answer);
     });
     
-    // Set callback for input changes to update check button
+    // Set callback for input changes to update buttons
     this.gridRenderer.onInputChange = () => {
       this.updateCheckButton();
+      this.updateClearButton();
+    };
+    
+    // Set callback for clear all (Escape key)
+    this.gridRenderer.onClearAll = () => {
+      this.handleClear();
     };
     
     this.checkButton = new CheckButton(checkButtonContainer, () => {
-      const input = this.gridRenderer.getCurrentInput();
-      if (input.length === 4) {
-        this.handleSubmit(input);
+      // Check if grid is complete
+      if (this.gameState.isGridComplete()) {
+        this.handleCheckGrid();
       }
+    });
+    
+    this.clearButton = new ClearButton(clearButtonContainer, () => {
+      this.handleClear();
     });
     
     this.riddleDisplay = new RiddleDisplay(riddlesContainer, this.puzzle, this.gameState);
@@ -126,6 +149,7 @@ export class Game {
   render() {
     this.gridRenderer.render();
     this.checkButton.render();
+    this.clearButton.render();
     this.riddleDisplay.render();
 
     // Update game info
@@ -137,8 +161,9 @@ export class Game {
       this.gridRenderer.setActiveRow(currentRiddle.position);
     }
 
-    // Update check button state
+    // Update button states
     this.updateCheckButton();
+    this.updateClearButton();
     
     // Ensure grid has focus after initial render
     setTimeout(() => {
@@ -149,7 +174,58 @@ export class Game {
   }
 
   /**
-   * Handles answer submission
+   * Handles full grid validation (new method for full grid checking)
+   */
+  handleCheckGrid() {
+    console.log('🔍 Checking full grid...');
+    
+    // Validate entire grid
+    const result = this.gameState.validateFullGrid();
+    console.log('Validation result:', result);
+    
+    if (result.correct) {
+      // Success! Game complete
+      console.log('✅ Grid is correct!');
+      this.checkButton.showMessage('🎉 ' + i18n.t('perfectGame'), 'success');
+      
+      // Animate completion
+      setTimeout(() => {
+        this.handleGameComplete();
+      }, 1000);
+    } else {
+      // Show errors with animated feedback sequence
+      console.log('❌ Grid has errors');
+      const incorrectCount = result.feedback.filter(f => !f.correct).length;
+      this.checkButton.showMessage(
+        `❌ ${incorrectCount} ${incorrectCount === 1 ? 'cell is' : 'cells are'} incorrect`,
+        'error'
+      );
+      
+      // Show feedback sequence: highlight errors, then clear them
+      this.gridRenderer.showGridFeedbackWithClear(result.feedback, () => {
+        // After clearing non-correct cells, update game state
+        result.feedback.forEach(({ row, col, status }) => {
+          if (status !== 'correct') {
+            this.gameState.updateCell(row, col, '');
+          }
+        });
+        
+        // Update displays
+        this.gridRenderer.update();
+        this.updateCheckButton();
+        this.updateClearButton();
+        
+        // Clear the error message
+        this.checkButton.clearMessage();
+        
+        // Save state
+        this.gameState.saveState();
+      });
+    }
+  }
+
+  /**
+   * Handles answer submission (old row-based method - kept for backward compatibility)
    * @param {string} answer - Player's answer
    */
   handleSubmit(answer) {
@@ -370,11 +446,47 @@ export class Game {
    * Updates check button state
    */
   updateCheckButton() {
-    if (this.gridRenderer.isInputComplete()) {
+    if (this.gameState.isGridComplete()) {
       this.checkButton.enable();
     } else {
       this.checkButton.disable();
     }
+  }
+
+  /**
+   * Updates clear button state
+   */
+  updateClearButton() {
+    const hasContent = this.gameState.getPlayerGrid().some(row => 
+      row.some(cell => cell !== '')
+    );
+    this.clearButton.update(hasContent);
+  }
+
+  /**
+   * Handles clear button click
+   */
+  handleClear() {
+    console.log('Clear button clicked');
+    
+    // Clear all grid content
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        this.gameState.updateCell(row, col, '');
+      }
+    }
+    
+    // Update displays
+    this.gridRenderer.update();
+    this.updateCheckButton();
+    this.updateClearButton();
+    
+    // Focus grid
+    setTimeout(() => {
+      if (this.gridRenderer.grid) {
+        this.gridRenderer.grid.focus();
+      }
+    }, 100);
   }
 
   /**
@@ -388,7 +500,6 @@ export class Game {
     infoElement.innerHTML = `
       <div class="game-stats">
         <span>${i18n.t('score')}: ${stats.score}</span>
-        <span>${i18n.t('solved')}: ${stats.revealedCount}/4</span>
       </div>
     `;
   }
@@ -446,5 +557,222 @@ export class Game {
     if (footer) {
       footer.textContent = i18n.t('gameInstructions');
     }
+    
+    // Update how-to-play button
+    const howToPlayBtn = document.getElementById('how-to-play-btn');
+    if (howToPlayBtn) {
+      howToPlayBtn.setAttribute('aria-label', i18n.t('howToPlay'));
+      howToPlayBtn.title = i18n.t('howToPlay');
+    }
+  }
+  
+  /**
+   * Checks if welcome modal should be shown and shows it
+   */
+  checkAndShowWelcomeModal() {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      this.showWelcomeModal();
+      localStorage.setItem('hasSeenWelcome', 'true');
+    }
+  }
+  
+  /**
+   * Sets up the how-to-play button
+   */
+  setupHowToPlayButton() {
+    const howToPlayBtn = document.getElementById('how-to-play-btn');
+    if (howToPlayBtn) {
+      howToPlayBtn.addEventListener('click', () => {
+        this.showWelcomeModal();
+      });
+    }
+  }
+  
+  /**
+   * Shows the welcome/how-to-play modal
+   */
+  showWelcomeModal() {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'welcome-modal-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-labelledby', 'welcome-title');
+    modal.setAttribute('aria-modal', 'true');
+    
+    // Create modal content
+    modal.innerHTML = `
+      <div class="welcome-modal-content">
+        <button class="welcome-modal-close" aria-label="${i18n.t('close')}">×</button>
+        <h2 id="welcome-title">${i18n.t('welcomeTitle')}</h2>
+        <p class="welcome-intro">${i18n.t('welcomeIntro')}</p>
+        
+        <h3>${i18n.t('howToPlayTitle')}</h3>
+        <ol class="how-to-play-list">
+          <li>${i18n.t('howToPlayStep1')}</li>
+          <li>${i18n.t('howToPlayStep2')}</li>
+          <li>${i18n.t('howToPlayStep3')}</li>
+        </ol>
+        
+        <button class="welcome-modal-button">${i18n.t('gotIt')}</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close handlers
+    const closeModal = () => {
+      modal.remove();
+      // Return focus to grid
+      if (this.gridRenderer.grid) {
+        this.gridRenderer.grid.focus();
+      }
+    };
+    
+    // Close button
+    modal.querySelector('.welcome-modal-close').addEventListener('click', closeModal);
+    
+    // Got it button
+    modal.querySelector('.welcome-modal-button').addEventListener('click', closeModal);
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // Escape key to close
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+  }
+  
+  /**
+   * Sets up the hints button
+   */
+  setupHintsButton() {
+    const hintsBtn = document.getElementById('hints-btn');
+    if (hintsBtn) {
+      hintsBtn.addEventListener('click', () => {
+        this.showRandomHint();
+      });
+    }
+  }
+  
+  /**
+   * Updates the hints button display
+   */
+  updateHintsButton() {
+    const hintsBtn = document.getElementById('hints-btn');
+    const hintsCount = document.getElementById('hints-count');
+    
+    if (!hintsBtn || !hintsCount) return;
+    
+    const remaining = this.gameState.state.hintsRemaining;
+    hintsCount.textContent = remaining;
+    
+    if (remaining <= 0) {
+      hintsBtn.disabled = true;
+      hintsBtn.classList.add('disabled');
+      hintsBtn.setAttribute('aria-label', i18n.t('noHintsRemaining'));
+    } else {
+      hintsBtn.disabled = false;
+      hintsBtn.classList.remove('disabled');
+      hintsBtn.setAttribute('aria-label', i18n.t('hintsRemaining', { count: remaining }));
+    }
+  }
+  
+  /**
+   * Shows a random hint modal
+   */
+  showRandomHint() {
+    if (!this.gameState.canUseHint()) {
+      return;
+    }
+    
+    const riddle = this.gameState.useRandomHint();
+    if (!riddle) {
+      return;
+    }
+    
+    // Save state
+    this.gameState.saveState();
+    
+    // Update hints button
+    this.updateHintsButton();
+    
+    // Show hint modal
+    this.showHintModal(riddle);
+    
+    // Update riddle display to show the hint
+    this.riddleDisplay.update();
+  }
+  
+  /**
+   * Shows the hint modal
+   * @param {Object} riddle - Riddle object with hint
+   */
+  showHintModal(riddle) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.className = 'hint-modal-overlay';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-labelledby', 'hint-title');
+    modal.setAttribute('aria-modal', 'true');
+    
+    // Create modal content
+    modal.innerHTML = `
+      <div class="hint-modal-content">
+        <button class="hint-modal-close" aria-label="${i18n.t('close')}">×</button>
+        <h2 id="hint-title">${i18n.t('hintModalTitle')}</h2>
+        <div class="hint-riddle">
+          <p class="hint-label">${i18n.t('hintFor')}</p>
+          <p class="hint-prompt">${riddle.prompt}</p>
+        </div>
+        <div class="hint-text">
+          <span class="hint-icon">💡</span>
+          <p>${riddle.hint}</p>
+        </div>
+        <button class="hint-modal-button">${i18n.t('gotIt')}</button>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close handlers
+    const closeModal = () => {
+      modal.remove();
+      // Return focus to grid
+      if (this.gridRenderer.grid) {
+        this.gridRenderer.grid.focus();
+      }
+    };
+    
+    // Close button
+    modal.querySelector('.hint-modal-close').addEventListener('click', closeModal);
+    
+    // Got it button
+    modal.querySelector('.hint-modal-button').addEventListener('click', closeModal);
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+    
+    // Escape key to close
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
   }
 }
