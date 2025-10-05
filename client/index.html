@@ -15,7 +15,14 @@
     <!-- Header -->
     <header class="game-header">
       <h1>Magic Four²</h1>
-      <div id="game-info"></div>
+      <div class="header-right">
+        <div id="game-info"></div>
+        <button id="hints-btn" class="hints-button" aria-label="Hints">
+          <span class="hints-icon">💡</span>
+          <span id="hints-count" class="hints-count">2</span>
+        </button>
+        <button id="how-to-play-btn" class="how-to-play-link" aria-label="How to play">❓</button>
+      </div>
     </header>
 
     <!-- Loading indicator -->
@@ -30,7 +37,10 @@
     <!-- Main game area -->
     <main class="game-main">
       <!-- Grid section -->
-      <section id="grid-container" class="section"></section>
+      <section class="grid-section section">
+        <div id="grid-container"></div>
+        <div id="clear-button-container" class="clear-button-wrapper"></div>
+      </section>
 
       <!-- Check button section -->
       <section id="check-button-container" class="section"></section>

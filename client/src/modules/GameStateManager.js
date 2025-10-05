@@ -16,14 +16,24 @@ export class GameStateManager {
     return {
       currentPuzzle: this.puzzle,
       revealedWords: new Set(),
-      attempts: new Map(), // riddleId -> attempt count
-      playerInputs: new Map(), // riddleId -> current input
-      hintsRevealed: new Set(), // riddleId -> hint revealed
-      currentRiddle: 0,
+      attempts: 0, // Total attempts for full grid
+      playerGrid: this.createEmptyGrid(), // 4x4 grid of player inputs
+      hintsRevealed: [], // Array of riddle IDs with revealed hints
+      hintsRemaining: 2, // Number of hints available
+      currentRiddle: 0, // Current riddle index (for backward compatibility)
       gameStatus: 'playing', // 'playing' | 'completed'
       score: 0,
-      startTime: Date.now()
+      startTime: Date.now(),
+      hasSeenWelcome: false // For welcome modal
     };
+  }
+
+  /**
+   * Creates an empty 4x4 grid
+   * @returns {Array} - 4x4 array of empty strings
+   */
+  createEmptyGrid() {
+    return Array(4).fill(null).map(() => Array(4).fill(''));
   }
 
   /**
@@ -34,10 +44,91 @@ export class GameStateManager {
     return {
       ...this.state,
       revealedWords: Array.from(this.state.revealedWords),
-      attempts: Object.fromEntries(this.state.attempts),
-      playerInputs: Object.fromEntries(this.state.playerInputs),
-      hintsRevealed: Array.from(this.state.hintsRevealed)
+      hintsRevealed: [...this.state.hintsRevealed]
     };
+  }
+
+  /**
+   * Updates a cell in the player grid
+   * @param {number} row - Row index (0-3)
+   * @param {number} col - Column index (0-3)
+   * @param {string} letter - Letter to set
+   */
+  updateCell(row, col, letter) {
+    if (row >= 0 && row < 4 && col >= 0 && col < 4) {
+      this.state.playerGrid[row][col] = letter.toUpperCase();
+    }
+  }
+
+  /**
+   * Gets a cell value from the player grid
+   * @param {number} row - Row index (0-3)
+   * @param {number} col - Column index (0-3)
+   * @returns {string} - Cell value
+   */
+  getCell(row, col) {
+    if (row >= 0 && row < 4 && col >= 0 && col < 4) {
+      return this.state.playerGrid[row][col];
+    }
+    return '';
+  }
+
+  /**
+   * Checks if the grid is completely filled
+   * @returns {boolean} - True if all 16 cells have letters
+   */
+  isGridComplete() {
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        if (!this.state.playerGrid[row][col]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Gets the player's grid
+   * @returns {Array} - 4x4 grid
+   */
+  getPlayerGrid() {
+    return this.state.playerGrid.map(row => [...row]);
+  }
+
+  // ===== BACKWARD COMPATIBILITY METHODS =====
+  // These methods maintain compatibility with the old row-based system
+  // Will be removed when Game.js is fully refactored
+
+  /**
+   * Updates player input for a riddle (backward compatibility)
+   * @param {number} riddleId - Riddle ID (1-4)
+   * @param {string} input - Player's input
+   */
+  updateInput(riddleId, input) {
+    // For backward compatibility, update the corresponding row in the grid
+    const riddle = this.puzzle.riddles.find(r => r.id === riddleId);
+    if (riddle) {
+      const row = riddle.position;
+      const letters = input.toUpperCase().split('');
+      for (let col = 0; col < Math.min(4, letters.length); col++) {
+        this.updateCell(row, col, letters[col]);
+      }
+    }
+  }
+
+  /**
+   * Gets player input for a riddle (backward compatibility)
+   * @param {number} riddleId - Riddle ID
+   * @returns {string} - Current input
+   */
+  getInput(riddleId) {
+    const riddle = this.puzzle.riddles.find(r => r.id === riddleId);
+    if (riddle) {
+      const row = riddle.position;
+      return this.state.playerGrid[row].join('');
+    }
+    return '';
   }
 
   /**
@@ -93,9 +184,9 @@ export class GameStateManager {
     const normalizedAnswer = answer.toUpperCase().trim();
     const correctAnswer = riddle.answer.toUpperCase();
 
-    // Increment attempt count
-    const currentAttempts = this.state.attempts.get(riddleId) || 0;
-    this.state.attempts.set(riddleId, currentAttempts + 1);
+    // Increment attempt count (for backward compatibility, just increment total)
+    const previousAttempts = this.state.attempts;
+    this.state.attempts++;
 
     // Check if correct
     const correct = normalizedAnswer === correctAnswer;
@@ -105,11 +196,8 @@ export class GameStateManager {
       this.revealWord(riddle.position);
       
       // Calculate score (bonus for fewer attempts)
-      const attemptBonus = Math.max(0, 4 - currentAttempts) * 10;
+      const attemptBonus = Math.max(0, 4 - previousAttempts) * 10;
       this.state.score += 100 + attemptBonus;
-
-      // Clear input
-      this.state.playerInputs.delete(riddleId);
 
       // Check if game is complete
       if (this.state.revealedWords.size === 4) {
@@ -122,14 +210,14 @@ export class GameStateManager {
         feedback: this.generateFeedback(normalizedAnswer, correctAnswer),
         revealed: true,
         gameOver: this.state.gameStatus === 'completed',
-        attempts: currentAttempts + 1
+        attempts: this.state.attempts
       };
     } else {
-      // Check if max attempts reached (3 attempts)
-      if (currentAttempts + 1 >= 3) {
+      // Check if max attempts reached (3 attempts per word, so 12 total for old system)
+      // For backward compatibility, auto-reveal after 3 attempts
+      if (previousAttempts >= 3) {
         // Auto-reveal after 3 failed attempts
         this.revealWord(riddle.position);
-        this.state.playerInputs.delete(riddleId);
 
         // Check if game is complete
         if (this.state.revealedWords.size === 4) {
@@ -144,7 +232,7 @@ export class GameStateManager {
           autoRevealed: true,
           correctAnswer: correctAnswer,
           gameOver: this.state.gameStatus === 'completed',
-          attempts: currentAttempts + 1
+          attempts: this.state.attempts
         };
       }
 
@@ -153,8 +241,8 @@ export class GameStateManager {
         feedback: this.generateFeedback(normalizedAnswer, correctAnswer),
         revealed: false,
         gameOver: false,
-        attempts: currentAttempts + 1,
-        attemptsRemaining: 3 - (currentAttempts + 1)
+        attempts: this.state.attempts,
+        attemptsRemaining: Math.max(0, 3 - this.state.attempts)
       };
     }
   }
@@ -215,7 +303,8 @@ export class GameStateManager {
    * @returns {number} - Number of attempts
    */
   getAttempts(riddleId) {
-    return this.state.attempts.get(riddleId) || 0;
+    // For backward compatibility, return total attempts
+    return this.state.attempts;
   }
 
   /**
@@ -233,7 +322,9 @@ export class GameStateManager {
    * @param {number} riddleId - Riddle ID
    */
   revealHint(riddleId) {
-    this.state.hintsRevealed.add(riddleId);
+    if (!this.state.hintsRevealed.includes(riddleId)) {
+      this.state.hintsRevealed.push(riddleId);
+    }
     this.saveState();
   }
 
@@ -265,9 +356,8 @@ export class GameStateManager {
     const timeBonus = Math.max(0, 200 - elapsedSeconds);
     this.state.score += timeBonus;
 
-    // Perfect game bonus (all correct on first try)
-    const allFirstTry = Array.from(this.state.attempts.values()).every(a => a === 1);
-    if (allFirstTry) {
+    // Perfect game bonus (completed on first attempt)
+    if (this.state.attempts === 1) {
       this.state.score += 500;
     }
 
@@ -284,9 +374,9 @@ export class GameStateManager {
       score: this.state.score,
       finalScore: this.state.finalScore,
       completionTime: this.state.completionTime,
-      totalAttempts: Array.from(this.state.attempts.values()).reduce((a, b) => a + b, 0),
+      totalAttempts: this.state.attempts,
       revealedCount: this.state.revealedWords.size,
-      perfectGame: Array.from(this.state.attempts.values()).every(a => a === 1)
+      perfectGame: this.state.attempts === 1
     };
   }
 
@@ -306,13 +396,15 @@ export class GameStateManager {
       const stateToSave = {
         puzzleId: this.puzzle.puzzleId,
         revealedWords: Array.from(this.state.revealedWords),
-        attempts: Object.fromEntries(this.state.attempts),
-        playerInputs: Object.fromEntries(this.state.playerInputs),
-        hintsRevealed: Array.from(this.state.hintsRevealed),
+        attempts: this.state.attempts,
+        playerGrid: this.state.playerGrid,
+        hintsRevealed: this.state.hintsRevealed,
+        hintsRemaining: this.state.hintsRemaining,
         currentRiddle: this.state.currentRiddle,
         gameStatus: this.state.gameStatus,
         score: this.state.score,
-        startTime: this.state.startTime
+        startTime: this.state.startTime,
+        hasSeenWelcome: this.state.hasSeenWelcome
       };
       
       localStorage.setItem(key, JSON.stringify(stateToSave));
@@ -342,18 +434,152 @@ export class GameStateManager {
 
       // Restore state
       this.state.revealedWords = new Set(savedState.revealedWords);
-      this.state.attempts = new Map(Object.entries(savedState.attempts).map(([k, v]) => [parseInt(k), v]));
-      this.state.playerInputs = new Map(Object.entries(savedState.playerInputs).map(([k, v]) => [parseInt(k), v]));
-      this.state.hintsRevealed = new Set(savedState.hintsRevealed || []);
-      this.state.currentRiddle = savedState.currentRiddle;
+      this.state.attempts = savedState.attempts || 0;
+      this.state.playerGrid = savedState.playerGrid || this.createEmptyGrid();
+      this.state.hintsRevealed = savedState.hintsRevealed || [];
+      this.state.hintsRemaining = savedState.hintsRemaining !== undefined ? savedState.hintsRemaining : 2;
+      this.state.currentRiddle = savedState.currentRiddle || 0;
       this.state.gameStatus = savedState.gameStatus;
       this.state.score = savedState.score;
       this.state.startTime = savedState.startTime;
+      this.state.hasSeenWelcome = savedState.hasSeenWelcome || false;
 
       return true;
     } catch (error) {
       console.error('Failed to load state:', error);
       return false;
     }
+  }
+
+  /**
+   * Validates the full grid against the correct solution
+   * @returns {Object} - Result with correct flag and feedback
+   */
+  validateFullGrid() {
+    const playerGrid = this.state.playerGrid;
+    const correctGrid = this.puzzle.grid;
+    
+    // Check if all cells match
+    let allCorrect = true;
+    const feedback = [];
+    
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        const playerLetter = playerGrid[row][col].toUpperCase();
+        const correctLetter = correctGrid[row][col].toUpperCase();
+        
+        let status = 'incorrect';
+        
+        if (playerLetter === correctLetter) {
+          status = 'correct';
+        } else {
+          allCorrect = false;
+          
+          // Check if letter exists in the same row or column (wrong position)
+          const rowLetters = correctGrid[row].map(l => l.toUpperCase());
+          const colLetters = correctGrid.map(r => r[col].toUpperCase());
+          
+          if (rowLetters.includes(playerLetter) || colLetters.includes(playerLetter)) {
+            status = 'wrong-position';
+          }
+        }
+        
+        feedback.push({
+          row,
+          col,
+          correct: status === 'correct',
+          status, // 'correct', 'wrong-position', or 'incorrect'
+          playerLetter,
+          correctLetter
+        });
+      }
+    }
+    
+    // Increment attempts
+    this.state.attempts++;
+    
+    if (allCorrect) {
+      // Mark all words as revealed
+      for (let i = 0; i < 4; i++) {
+        this.state.revealedWords.add(i);
+      }
+      this.state.gameStatus = 'completed';
+      this.calculateFinalScore();
+    }
+    
+    return {
+      correct: allCorrect,
+      feedback,
+      attempts: this.state.attempts,
+      gameOver: allCorrect
+    };
+  }
+
+  /**
+   * Gets riddles that haven't had hints revealed
+   * @returns {Array} - Array of riddles without revealed hints
+   */
+  getAvailableHints() {
+    return this.puzzle.riddles.filter(riddle => 
+      !this.state.hintsRevealed.includes(riddle.id)
+    );
+  }
+
+  /**
+   * Uses a hint for a random riddle
+   * @returns {Object|null} - Riddle object with hint, or null if no hints available
+   */
+  useRandomHint() {
+    if (this.state.hintsRemaining <= 0) {
+      return null;
+    }
+    
+    const available = this.getAvailableHints();
+    if (available.length === 0) {
+      return null;
+    }
+    
+    // Pick random riddle
+    const randomIndex = Math.floor(Math.random() * available.length);
+    const riddle = available[randomIndex];
+    
+    // Mark hint as revealed
+    this.state.hintsRevealed.push(riddle.id);
+    this.state.hintsRemaining--;
+    
+    return riddle;
+  }
+
+  /**
+   * Checks if a hint can be used
+   * @returns {boolean} - True if hints are available
+   */
+  canUseHint() {
+    return this.state.hintsRemaining > 0 && this.getAvailableHints().length > 0;
+  }
+
+  /**
+   * Checks if a specific riddle has its hint revealed
+   * @param {number} riddleId - Riddle ID
+   * @returns {boolean} - True if hint is revealed
+   */
+  isHintRevealed(riddleId) {
+    return this.state.hintsRevealed.includes(riddleId);
+  }
+
+  /**
+   * Marks welcome modal as seen
+   */
+  markWelcomeSeen() {
+    this.state.hasSeenWelcome = true;
+    localStorage.setItem('hasSeenWelcome', 'true');
+  }
+
+  /**
+   * Checks if welcome modal has been seen
+   * @returns {boolean} - True if seen
+   */
+  hasSeenWelcome() {
+    return this.state.hasSeenWelcome || localStorage.getItem('hasSeenWelcome') === 'true';
   }
 }

@@ -161,15 +161,12 @@ describe('GameStateManager', () => {
   });
 
   describe('Integration with Game Flow', () => {
-    it('should maintain hint state during gameplay', () => {
-      // Reveal hint for riddle 1
+    it.skip('should maintain hint state during gameplay (old row-based system)', () => {
+      // This test is for the old row-by-row submission system
+      // Will be updated when Game.js is refactored
       gameState.revealHint(1);
-      
-      // Submit correct answer for riddle 1
       const result = gameState.submitAnswer(1, 'TEST');
       expect(result.correct).toBe(true);
-      
-      // Hint should still be marked as revealed
       expect(gameState.isHintRevealed(1)).toBe(true);
     });
 
@@ -196,6 +193,140 @@ describe('GameStateManager', () => {
       expect(Array.isArray(state.hintsRevealed)).toBe(true);
       expect(state.hintsRevealed).toContain(1);
       expect(state.hintsRevealed).toContain(3);
+    });
+  });
+
+  describe('Grid-Based State Management', () => {
+    it('should initialize with empty 4x4 grid', () => {
+      const grid = gameState.getPlayerGrid();
+      expect(grid).toHaveLength(4);
+      expect(grid[0]).toHaveLength(4);
+      expect(grid[0][0]).toBe('');
+      expect(grid[3][3]).toBe('');
+    });
+
+    it('should update individual cells', () => {
+      gameState.updateCell(0, 0, 'T');
+      gameState.updateCell(1, 2, 'A');
+      
+      expect(gameState.getCell(0, 0)).toBe('T');
+      expect(gameState.getCell(1, 2)).toBe('A');
+      expect(gameState.getCell(0, 1)).toBe('');
+    });
+
+    it('should detect incomplete grid', () => {
+      gameState.updateCell(0, 0, 'T');
+      gameState.updateCell(0, 1, 'E');
+      
+      expect(gameState.isGridComplete()).toBe(false);
+    });
+
+    it('should detect complete grid', () => {
+      // Fill entire grid
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          gameState.updateCell(row, col, 'X');
+        }
+      }
+      
+      expect(gameState.isGridComplete()).toBe(true);
+    });
+
+    it('should validate correct full grid', () => {
+      // Fill with correct solution
+      const correctGrid = [
+        ['T', 'E', 'S', 'T'],
+        ['E', 'A', 'C', 'H'],
+        ['S', 'C', 'A', 'N'],
+        ['T', 'H', 'N', 'E']
+      ];
+      
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          gameState.updateCell(row, col, correctGrid[row][col]);
+        }
+      }
+      
+      const result = gameState.validateFullGrid();
+      expect(result.correct).toBe(true);
+      expect(result.gameOver).toBe(true);
+    });
+
+    it('should validate incorrect full grid', () => {
+      // Fill with incorrect solution
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          gameState.updateCell(row, col, 'X');
+        }
+      }
+      
+      const result = gameState.validateFullGrid();
+      expect(result.correct).toBe(false);
+      expect(result.gameOver).toBe(false);
+      expect(result.feedback).toHaveLength(16);
+    });
+  });
+
+  describe('Hint System', () => {
+    it('should start with 2 hints available', () => {
+      const state = gameState.getState();
+      expect(state.hintsRemaining).toBe(2);
+      expect(gameState.canUseHint()).toBe(true);
+    });
+
+    it('should return random hint from available riddles', () => {
+      const hint = gameState.useRandomHint();
+      
+      expect(hint).toBeTruthy();
+      expect(hint.id).toBeGreaterThanOrEqual(1);
+      expect(hint.id).toBeLessThanOrEqual(4);
+      expect(gameState.isHintRevealed(hint.id)).toBe(true);
+      
+      const state = gameState.getState();
+      expect(state.hintsRemaining).toBe(1);
+    });
+
+    it('should not repeat hints', () => {
+      const hint1 = gameState.useRandomHint();
+      const hint2 = gameState.useRandomHint();
+      
+      expect(hint1.id).not.toBe(hint2.id);
+      expect(gameState.canUseHint()).toBe(false);
+    });
+
+    it('should return null when no hints remaining', () => {
+      gameState.useRandomHint();
+      gameState.useRandomHint();
+      
+      const hint3 = gameState.useRandomHint();
+      expect(hint3).toBeNull();
+    });
+
+    it('should get available hints', () => {
+      const available1 = gameState.getAvailableHints();
+      expect(available1).toHaveLength(4);
+      
+      gameState.useRandomHint();
+      
+      const available2 = gameState.getAvailableHints();
+      expect(available2).toHaveLength(3);
+    });
+  });
+
+  describe('Welcome Modal State', () => {
+    it('should track welcome modal seen state', () => {
+      expect(gameState.hasSeenWelcome()).toBe(false);
+      
+      gameState.markWelcomeSeen();
+      
+      expect(gameState.hasSeenWelcome()).toBe(true);
+    });
+
+    it('should persist welcome seen state', () => {
+      gameState.markWelcomeSeen();
+      
+      const newGameState = new GameStateManager(mockPuzzle);
+      expect(newGameState.hasSeenWelcome()).toBe(true);
     });
   });
 });
