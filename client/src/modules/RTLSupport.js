@@ -114,4 +114,40 @@ export class RTLSupport {
     element.style.direction = direction;
     element.style.fontFamily = fontFamily;
   }
+
+  /**
+   * Normalizes Hebrew final form letters to their regular forms
+   * @param {string} text - Text to normalize
+   * @returns {string} - Normalized text
+   */
+  static normalizeHebrewFinalForms(text) {
+    if (!text) return text;
+    
+    // Map of final forms to regular forms
+    const finalToRegular = {
+      'ך': 'כ', // Final Kaf to Kaf
+      'ם': 'מ', // Final Mem to Mem
+      'ן': 'נ', // Final Nun to Nun
+      'ף': 'פ', // Final Pe to Pe
+      'ץ': 'צ'  // Final Tsadi to Tsadi
+    };
+    
+    return text.split('').map(char => finalToRegular[char] || char).join('');
+  }
+
+  /**
+   * Normalizes text based on language rules
+   * @param {string} text - Text to normalize
+   * @param {string} language - Language code
+   * @returns {string} - Normalized text
+   */
+  static normalizeText(text, language) {
+    if (!text) return text;
+    
+    if (language === 'he') {
+      return this.normalizeHebrewFinalForms(text);
+    }
+    
+    return text;
+  }
 }

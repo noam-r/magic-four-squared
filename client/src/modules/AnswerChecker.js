@@ -2,6 +2,8 @@
  * AnswerChecker - Evaluates player answers and provides feedback
  */
 
+import { RTLSupport } from './RTLSupport.js';
+
 export class AnswerChecker {
   /**
    * Checks if an answer is correct
@@ -18,13 +20,21 @@ export class AnswerChecker {
   /**
    * Normalizes a word for comparison
    * @param {string} word - Word to normalize
+   * @param {string} language - Language code (optional)
    * @returns {string} - Normalized word
    */
-  static normalize(word) {
+  static normalize(word, language = null) {
     if (!word) {
       return '';
     }
-    return word.trim().toUpperCase().normalize('NFC');
+    let normalized = word.trim().toUpperCase().normalize('NFC');
+    
+    // Apply language-specific normalization (e.g., Hebrew final forms)
+    if (language) {
+      normalized = RTLSupport.normalizeText(normalized, language);
+    }
+    
+    return normalized;
   }
 
   /**

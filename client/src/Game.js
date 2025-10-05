@@ -336,56 +336,23 @@ export class Game {
     this.checkButton.disable();
 
     // Show completion message
-    const stats = this.gameState.getStatistics();
-    const message = this.getCompletionMessage(stats);
+    const message = i18n.t('completed');
     
     setTimeout(() => {
-      this.showCompletionModal(message, stats);
+      this.showCompletionModal(message);
     }, 1000);
-  }
-
-  /**
-   * Gets completion message based on stats
-   * @param {Object} stats - Game statistics
-   * @returns {string} - Completion message
-   */
-  getCompletionMessage(stats) {
-    if (stats.perfectGame) {
-      return i18n.t('perfectGame');
-    } else if (stats.totalAttempts <= 6) {
-      return i18n.t('excellent');
-    } else if (stats.totalAttempts <= 9) {
-      return i18n.t('wellDone');
-    } else {
-      return i18n.t('completed');
-    }
   }
 
   /**
    * Shows completion modal
    * @param {string} message - Completion message
-   * @param {Object} stats - Game statistics
    */
-  showCompletionModal(message, stats) {
+  showCompletionModal(message) {
     const modal = document.createElement('div');
     modal.className = 'completion-modal';
     modal.innerHTML = `
       <div class="modal-content">
         <h2>${message}</h2>
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-label">${i18n.t('finalScore')}</span>
-            <span class="stat-value">${stats.finalScore}</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">${i18n.t('completionTime')}</span>
-            <span class="stat-value">${this.formatTime(stats.completionTime)}</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">${i18n.t('totalAttempts')}</span>
-            <span class="stat-value">${stats.totalAttempts}</span>
-          </div>
-        </div>
         <button class="new-game-button">${i18n.t('newGame')}</button>
       </div>
     `;
@@ -396,17 +363,6 @@ export class Game {
     modal.querySelector('.new-game-button').addEventListener('click', () => {
       this.startNewGame();
     });
-  }
-
-  /**
-   * Formats time in seconds to readable format
-   * @param {number} seconds - Time in seconds
-   * @returns {string} - Formatted time
-   */
-  formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
   }
 
   /**
@@ -493,15 +449,7 @@ export class Game {
    * Updates game info display
    */
   updateGameInfo() {
-    const infoElement = document.getElementById('game-info');
-    if (!infoElement) return;
-
-    const stats = this.gameState.getStatistics();
-    infoElement.innerHTML = `
-      <div class="game-stats">
-        <span>${i18n.t('score')}: ${stats.score}</span>
-      </div>
-    `;
+    // Simplified - no score or stats displayed
   }
 
   /**

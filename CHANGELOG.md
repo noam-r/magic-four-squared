@@ -5,6 +5,21 @@ All notable changes to Magic Four² will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Professional SVG Icons**: Replaced emoji buttons with clean SVG icons for hints and help
+- **Hebrew Final Form Normalization**: Automatically converts Hebrew final form letters (ך, ם, ן, ף, ץ) to regular forms for consistent gameplay
+
+### Changed
+- **Improved Header Layout**: Three-column grid layout with hints button on left, title centered, and help button on right
+- **RTL-Aware Styling**: Grid labels now properly align in both LTR and RTL languages using `margin-inline-start`
+
+### Fixed
+- **Grid Label Alignment**: Fixed column and row number labels to properly align with grid cells
+- **Button Color Harmony**: Changed hints button from orange to purple to match app's color scheme
+- **Help Button Style**: Redesigned as subtle outlined circle that turns purple on hover
+
 ## [2.0.0] - 2025-05-10
 
 ### Major UX Overhaul 🎉
@@ -16,13 +31,13 @@ This release completely reimagines the gameplay experience with a focus on simpl
 - **Symmetric Auto-Fill**: Letters automatically fill both row and column positions (magic square logic)
 - **Grid Validation**: Check entire grid at once instead of row-by-row submission
 - **Smart Feedback**: Wrong letters fade to gray then auto-clear, keeping correct ones
-- **Global Hints System**: Limited to 2 hints per game via global button (💡 2)
+- **Global Hints System**: Limited to 2 hints per game via global button
 - **Clean Riddle Display**: Removed individual hint buttons, status messages, and clutter
 - **Modern Design**: Wordle-style minimalist aesthetic with clean typography
 
 ### Added
 - **Welcome Modal**: First-time user onboarding with 3-step instructions
-- **How to Play Button**: Accessible help (?) in header
+- **How to Play Button**: Accessible help in header
 - **Clear Grid Button**: One-click clear with Escape key shortcut
 - **Grid Labels**: Row/column numbers (1-4) matching riddle numbers
 - **Wrong Position Feedback**: Yellow highlighting for letters in wrong spots (Wordle-style)
